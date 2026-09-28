@@ -1,0 +1,43 @@
+/*
+ * PAGE-LEVEL styles: theme token values + base element styles.
+ *
+ * Load this ONLY from the application that owns the document: the shell, or a
+ * remote running standalone. A remote that loads it while hosted (possibly an
+ * older copy of this package, with different values) overrides the host's
+ * tokens for the whole page, and keeps overriding after it unmounts.
+ *
+ * Changing a value here re-themes every micro-frontend at runtime without
+ * redeploying them, because they only reference var(--primary), never the colour.
+ */
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/tokens.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@micro-shop/ui/components",
+    "ui": "@micro-shop/ui/components",
+    "utils": "@micro-shop/ui/lib/utils",
+    "lib": "@micro-shop/ui/lib",
+    "hooks": "@micro-shop/ui/hooks"
+  }
+}

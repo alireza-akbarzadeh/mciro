@@ -1,0 +1,20 @@
+/*
+ * PAGE stylesheet. The shell owns the document, so it is the ONLY application
+ * (when composed) that loads:
+ *   - Tailwind's preflight: the CSS reset for html, body and bare elements
+ *   - the design-system token VALUES (tokens.css): --primary, --border, …
+ *
+ * Remotes load utilities only (see apps/orders/src/orders.css). Every app
+ * declares the same layer order, so layers from different stylesheets merge:
+ * theme < base < components < utilities, regardless of which file loaded first.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "@micro-shop/ui/styles/theme.css";
+@import "@micro-shop/ui/styles/tokens.css";
+
+@source "../../../packages/ui/src";

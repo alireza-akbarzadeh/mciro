@@ -1,0 +1,11 @@
+/*
+ * PAGE stylesheet for standalone mode only (imported by index.ts, the entry).
+ * See apps/orders/src/standalone.css.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+
+@import "@micro-shop/ui/styles/theme.css";
+@import "@micro-shop/ui/styles/tokens.css";

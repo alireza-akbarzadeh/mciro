@@ -1,0 +1,22 @@
+{
+  "name": "micro-shop",
+  "private": true,
+  "description": "A deliberately small micro-frontend architecture for learning Module Federation 2.0",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev:shell": "pnpm --filter @micro-shop/shell dev",
+    "dev:auth": "pnpm --filter @micro-shop/auth dev",
+    "dev:orders": "pnpm --filter @micro-shop/orders dev",
+    "dev:shipping": "pnpm --filter @micro-shop/shipping dev",
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "build:shell": "pnpm --filter @micro-shop/shell build",
+    "build:auth": "pnpm --filter @micro-shop/auth build",
+    "build:orders": "pnpm --filter @micro-shop/orders build",
+    "build:shipping": "pnpm --filter @micro-shop/shipping build",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

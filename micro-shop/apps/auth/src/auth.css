@@ -1,0 +1,12 @@
+/*
+ * REMOTE stylesheet: loaded with ./LoginForm and ./UserMenu, wherever they render.
+ * Utilities only: no preflight, no token values. See apps/orders/src/orders.css.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "@micro-shop/ui/styles/theme.css";
+
+@source "../../../packages/ui/src";

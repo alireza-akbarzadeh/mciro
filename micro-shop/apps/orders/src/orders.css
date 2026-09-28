@@ -1,0 +1,24 @@
+/*
+ * REMOTE stylesheet: loaded with ./OrdersApp, wherever it is rendered.
+ *
+ * Utilities only. Deliberately NO preflight (Tailwind's CSS reset) and NO token
+ * values: those belong to whoever owns the page.
+ *   - Token values here would RE-THEME the whole page the moment Orders loads,
+ *     and stay applied after Orders unmounts (CSS is never unloaded).
+ *   - Preflight here would be redundant at best; with a different Tailwind
+ *     version it would fight the shell's reset.
+ *   - Unlayered rules (plain CSS, Tailwind v3) beat every layered rule on the
+ *     page, so they would override the shell's utilities. Keep everything layered.
+ *
+ * The utilities it generates are identical to the shell's for the same class
+ * (same Tailwind version, same theme), so duplicates are harmless, just bytes.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "@micro-shop/ui/styles/theme.css";
+
+/* Tailwind only scans this app by default; the design system lives outside it. */
+@source "../../../packages/ui/src";

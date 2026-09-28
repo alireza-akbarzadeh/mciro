@@ -1,0 +1,6 @@
+node_modules/
+dist/
+@mf-types/
+.mf/
+*.log
+.playwright-mcp/

@@ -1,0 +1,17 @@
+{
+  "name": "@micro-shop/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Public types shared between micro-frontends. Types only: no runtime code, no business logic.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

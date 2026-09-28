@@ -1,0 +1,14 @@
+/*
+ * PAGE stylesheet for standalone mode only (imported by index.ts, the entry).
+ *
+ * In standalone mode Orders owns the document, so it plays the shell's role:
+ * CSS reset + theme token values. When the shell hosts Orders this file is never
+ * loaded: it is part of main.js's chunk, and hosts only load remoteEntry.js.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+
+@import "@micro-shop/ui/styles/theme.css";
+@import "@micro-shop/ui/styles/tokens.css";
