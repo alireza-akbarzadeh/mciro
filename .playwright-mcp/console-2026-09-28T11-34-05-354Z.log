@@ -1,0 +1,812 @@
+[     101ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[     102ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[     197ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[     276ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[     277ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[     287ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     288ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     293ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     293ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     298ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     298ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     302ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     302ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     310ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     310ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     316ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     316ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     322ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     322ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     328ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     328ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     334ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     335ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     339ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     340ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     344ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     344ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     356ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     367ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     367ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     380ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     381ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     388ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     388ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     393ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     394ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     400ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     401ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     406ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     407ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     412ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     412ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     418ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     418ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     423ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     423ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     429ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     429ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     435ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     435ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     439ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     440ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     444ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     445ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     450ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     450ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     454ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     454ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     458ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     458ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     464ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     464ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     468ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     468ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     472ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     472ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     476ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     476ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     482ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     486ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     487ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     491ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     491ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     497ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     497ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     501ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     501ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     505ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     505ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     509ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[     509ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) @ http://localhost:3000/main.js:4960
+[     813ms] [ERROR] %o
+
+%s
+
+%s
+ Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) The above error occurred in one of your React components. React will try to recreate this component tree from scratch using the error boundary you provided, RemoteBoundary. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:9797
+[     813ms] [ERROR] [shell] remote "orders" failed Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3070:9
+    at logAndReport (http://localhost:3000/main.js:26:9)
+    at Object.error (http://localhost:3000/main.js:3069:89)
+    at getManifest (http://localhost:3000/main.js:1294:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1339:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1213:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1405:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1812:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1579:55) 
+    at Lazy (<anonymous>)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1342:9)
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1292:22)
+    at SessionGate (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:367:26)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1342:9)
+    at RequireSession (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:330:26)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Outlet (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2572:56)
+    at main (<anonymous>)
+    at div (<anonymous>)
+    at Layout (<anonymous>)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Routes (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2724:19)
+    at App (<anonymous>)
+    at Router (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2654:29)
+    at BrowserRouter (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:3403:26) @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1352
+[  144426ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  144535ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  144536ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  144559ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  144560ms] [WARNING] [HMR] Error: Aborted because ./src/remote.tsx is not accepted
+Update propagation: ./src/remote.tsx -> ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9282:20)
+    at http://localhost:3000/main.js:8621:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8620:43)
+    at http://localhost:3000/main.js:8595:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8546:37)
+    at http://localhost:3000/main.js:8593:13 @ http://localhost:3000/main.js:6410
+[  144654ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  144655ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  144749ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  144786ms] ReferenceError: useMemo is not defined
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1296:22)
+    at Object.react_stack_bottom_frame (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:28573:20)
+    at renderWithHooks (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:8032:22)
+    at updateFunctionComponent (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:10571:19)
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:12207:18)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18987:11)
+    at performWorkOnRoot (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18096:35)
+[  144783ms] [WARNING] %s
+
+%s
+ An error occurred in the <Remote> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:9749
+[  202407ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  202498ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  202498ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  202502ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  202594ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  202604ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/main.41fcad13d9cf0de0.hot-update.json:0
+[  202605ms] [WARNING] [HMR] Cannot find update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  202605ms] [WARNING] [HMR] (Probably because of restarting the rspack-dev-server) @ http://localhost:3000/main.js:6410
+[  202719ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  202723ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  202824ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  202868ms] ReferenceError: useMemo is not defined
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1312:22)
+    at Object.react_stack_bottom_frame (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:28573:20)
+    at renderWithHooks (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:8032:22)
+    at updateFunctionComponent (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:10571:19)
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:12207:18)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18987:11)
+    at performWorkOnRoot (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18096:35)
+[  202867ms] [WARNING] %s
+
+%s
+ An error occurred in the <Remote> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:9749
+[  203737ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  203824ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  203825ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  203828ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  203922ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  203928ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/main.069d70cd8a8c8b36.hot-update.json:0
+[  203929ms] [WARNING] [HMR] Cannot find update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  203929ms] [WARNING] [HMR] (Probably because of restarting the rspack-dev-server) @ http://localhost:3000/main.js:6410
+[  204015ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  204017ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  204127ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  204163ms] ReferenceError: useMemo is not defined
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1312:22)
+    at Object.react_stack_bottom_frame (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:28573:20)
+    at renderWithHooks (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:8032:22)
+    at updateFunctionComponent (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:10571:19)
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:12207:18)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18987:11)
+    at performWorkOnRoot (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18096:35)
+[  204162ms] [WARNING] %s
+
+%s
+ An error occurred in the <Remote> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:9749
+[  205060ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  205178ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  205178ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  205199ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  205199ms] [WARNING] [HMR] Error: Aborted because ./src/remote.tsx is not accepted
+Update propagation: ./src/remote.tsx -> ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9282:20)
+    at http://localhost:3000/main.js:8621:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8620:43)
+    at http://localhost:3000/main.js:8595:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8546:37)
+    at http://localhost:3000/main.js:8593:13 @ http://localhost:3000/main.js:6410
+[  205307ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  205311ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  205405ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  205541ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[  205543ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[  205653ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  205654ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  206401ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  206525ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  206526ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  206550ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  206550ms] [WARNING] [HMR] Error: Aborted because ./src/use-session.ts is not accepted
+Update propagation: ./src/use-session.ts -> ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9282:20)
+    at http://localhost:3000/main.js:8621:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8620:43)
+    at http://localhost:3000/main.js:8595:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8546:37)
+    at http://localhost:3000/main.js:8593:13 @ http://localhost:3000/main.js:6410
+[  206672ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  206675ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  206786ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  206884ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[  206885ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[  206976ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  206976ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  207739ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  207842ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  207843ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  207871ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  207871ms] [WARNING] [HMR] Error: Aborted because ./src/App.tsx is not accepted
+Update propagation: ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9282:20)
+    at http://localhost:3000/main.js:8621:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8620:43)
+    at http://localhost:3000/main.js:8595:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8546:37)
+    at http://localhost:3000/main.js:8593:13 @ http://localhost:3000/main.js:6410
+[  207980ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  207982ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  208099ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  208181ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[  208182ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[  208252ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  208253ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  209057ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7071
+[  209162ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7071
+[  209162ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6408
+[  209188ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6410
+[  209188ms] [WARNING] [HMR] Error: Aborted because ./src/App.tsx is not accepted
+Update propagation: ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9282:20)
+    at http://localhost:3000/main.js:8621:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8620:43)
+    at http://localhost:3000/main.js:8595:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8546:37)
+    at http://localhost:3000/main.js:8593:13 @ http://localhost:3000/main.js:6410
+[  209313ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[  209314ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[  209413ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[  209509ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[  209510ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[  209565ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  209566ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  227100ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:3002/remoteEntry.js:7072
+[  227100ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[  228154ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[  228155ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[  228155ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072

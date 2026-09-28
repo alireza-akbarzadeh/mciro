@@ -17,7 +17,8 @@ export type Order = {
   lines: readonly OrderLine[];
 };
 
-export const orders: readonly Order[] = [
+/** Seed data. The live list is in orders-store.ts. */
+export const seedOrders: readonly Order[] = [
   {
     id: '1001',
     customer: 'Ada Lovelace',
@@ -53,10 +54,6 @@ export const orders: readonly Order[] = [
     lines: [{ product: 'Standing desk', quantity: 1, unitPrice: 540 }],
   },
 ];
-
-export function findOrder(orderId: string): Order | undefined {
-  return orders.find((order) => order.id === orderId);
-}
 
 export function orderTotal(order: Order): number {
   return order.lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);

@@ -43,6 +43,9 @@ export default defineConfig({
   devServer: {
     port: PORT,
     historyApiFallback: true,
+    // Dev only: serves public/mfe-registry.json. It is NOT copied into dist/;
+    // in production the registry comes from the CDN (see src/registry.ts).
+    static: { directory: 'public' },
   },
 
   plugins: [

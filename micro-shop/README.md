@@ -25,7 +25,8 @@ flowchart LR
 | Package                 | What                                         | Shared how                          |
 | ----------------------- | -------------------------------------------- | ----------------------------------- |
 | `@micro-shop/ui`        | shadcn/ui components + theme tokens          | build time (bundled into each app)  |
-| `@micro-shop/contracts` | public types: session API, URLs (`AppPath`)  | build time, types only (0 bytes)    |
+| `@micro-shop/contracts` | public types: session API, URLs, events      | build time, types only (0 bytes)    |
+| `@micro-shop/event-bus` | typed publish/subscribe over `window` events | build time; `window` is the transport |
 
 ## Quick start
 
@@ -77,7 +78,7 @@ pnpm dlx shadcn@latest add dialog
 2. ✅ Auth remote (business boundaries)
 3. ✅ Shared UI (shadcn/ui) + contracts
 4. ✅ Shipping + URL routing (cross-app navigation through URLs)
-5. Cross-app events (`order.created` → Shipping reacts)
-6. Failure isolation (a missing remote must not blank the shell)
-7. Next.js storefront for SEO pages + a local reverse proxy
+5. ✅ Cross-app events (`order.created` → Shipping reacts; event log in the shell)
+6. ✅ Failure isolation (per-remote error boundaries, retry, fail-closed auth, `?break=<app>`)
+7. ✅ Next.js storefront for SEO pages + a local gateway (`http://localhost:8080`)
 8. Independent deployment, versioning, rollback, observability, tests

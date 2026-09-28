@@ -1,0 +1,18 @@
+{
+  "name": "@micro-shop/observability",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tiny logger that tags every entry with the micro-frontend that produced it, plus pluggable sinks (Sentry, OpenTelemetry, ...).",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@micro-shop/contracts": "workspace:*",
+    "typescript": "^7.0.2"
+  }
+}

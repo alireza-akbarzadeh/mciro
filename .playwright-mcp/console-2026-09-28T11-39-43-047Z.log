@@ -1,0 +1,55 @@
+[      63ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7071
+[      64ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6408
+[     162ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:31149
+[     273ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[     274ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[     416ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3003/remoteEntry.js:7072
+[     417ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3003/remoteEntry.js:6409
+[     484ms] [ERROR] %o
+
+%s
+
+%s
+ Error: [auth] intentional crash (?break=auth)
+    at throwIfBroken (http://localhost:3001/__federation_expose_UserMenu.js:92:15)
+    at UserMenu (http://localhost:3001/__federation_expose_UserMenu.js:25:56)
+    at Object.react_stack_bottom_frame (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:28573:20)
+    at renderWithHooks (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:8032:22)
+    at updateFunctionComponent (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:10571:19)
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:12149:35)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18987:11) The above error occurred in the <UserMenu> component. React will try to recreate this component tree from scratch using the error boundary you provided, RemoteBoundary. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:9797
+[     484ms] [ERROR] [shell] remote "auth" failed Error: [auth] intentional crash (?break=auth)
+    at throwIfBroken (http://localhost:3001/__federation_expose_UserMenu.js:92:15)
+    at UserMenu (http://localhost:3001/__federation_expose_UserMenu.js:25:56)
+    at Object.react_stack_bottom_frame (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:28573:20)
+    at renderWithHooks (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:8032:22)
+    at updateFunctionComponent (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:10571:19)
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:12149:35)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-40c95e.js:18987:11) 
+    at UserMenu (http://localhost:3001/__federation_expose_UserMenu.js:25:56)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1356:9)
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1309:22)
+    at div (<anonymous>)
+    at header (<anonymous>)
+    at div (<anonymous>)
+    at Layout (<anonymous>)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Routes (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2724:19)
+    at App (<anonymous>)
+    at Router (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2654:29)
+    at BrowserRouter (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:3403:26) @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1366
+[    9380ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:3001/remoteEntry.js:7072
+[    9380ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   10445ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   10446ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   10447ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   12456ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   12457ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   12457ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072

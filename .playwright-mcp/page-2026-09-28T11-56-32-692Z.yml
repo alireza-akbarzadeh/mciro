@@ -1,0 +1,31 @@
+- generic [active] [ref=f46e1]:
+  - banner [ref=f46e2]:
+    - generic [ref=f46e3]: STOREFRONT
+    - link "Micro Shop" [ref=f46e4] [cursor=pointer]:
+      - /url: /
+    - navigation "Main" [ref=f46e5]:
+      - link "Products" [ref=f46e6] [cursor=pointer]:
+        - /url: /
+      - link "Orders" [ref=f46e7] [cursor=pointer]:
+        - /url: /orders
+      - link "Shipping" [ref=f46e8] [cursor=pointer]:
+        - /url: /shipping
+    - link "Sign in · My orders" [ref=f46e10] [cursor=pointer]:
+      - /url: /orders
+  - main [ref=f46e11]:
+    - generic [ref=f46e69]:
+      - generic [ref=f46e70]: STOREFRONT
+      - article [ref=f46e71]:
+        - link "← All products" [ref=f46e72] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f46e73]:
+          - generic [ref=f46e74]: Desk
+          - heading "Standing desk" [level=1] [ref=f46e75]
+          - paragraph [ref=f46e76]: $540.00
+        - paragraph [ref=f46e77]: A dual-motor electric standing desk with a 160 × 80 cm top, four height presets and anti-collision detection.
+        - generic [ref=f46e78]:
+          - link "Go to your orders" [ref=f46e79] [cursor=pointer]:
+            - /url: /orders
+          - generic [ref=f46e80]: Opens the signed-in app (Module Federation shell) with a full page load.
+  - contentinfo [ref=f46e67]: Server-rendered by Next.js (storefront zone, port 3004). Signed-in pages are served by the Module Federation shell (port 3000). The gateway on port 8080 routes between them.
+  - alert [ref=f46e68]: Standing desk

@@ -3,6 +3,11 @@ import { defineConfig } from '@rspack/cli';
 import { rspack } from '@rspack/core';
 import { ModuleFederationPlugin } from '@module-federation/enhanced/rspack';
 import mfConfig from './module-federation.config.mjs';
+import pkg from './package.json' with { type: 'json' };
+
+// The version this build will be released as. Shown in the UI so you can SEE which
+// release is live. APP_VERSION overrides package.json for quick release demos.
+const APP_VERSION = process.env.APP_VERSION ?? pkg.version;
 
 const PORT = 3002;
 
@@ -59,6 +64,7 @@ export default defineConfig({
     // publicPath '/' for this page only: a deep link like /orders/1003 must load
     // /main.js, not /orders/main.js. The remote's own chunks keep publicPath 'auto'.
     new rspack.HtmlRspackPlugin({ template: './index.html', publicPath: '/' }),
+    new rspack.DefinePlugin({ __APP_VERSION__: JSON.stringify(APP_VERSION) }),
     new ModuleFederationPlugin(mfConfig),
   ],
 });

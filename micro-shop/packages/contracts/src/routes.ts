@@ -6,13 +6,17 @@
 // Types only. An app checks a link by giving it this type:
 //   const url: AppPath = `/shipping/order/${order.id}`;
 //
-// Ownership of each prefix:
-//   /            shell
-//   /orders/*    orders
-//   /shipping/*  shipping
+// Ownership of each prefix (behind the gateway on :8080):
+//   /, /products/*   storefront (Next.js, server-rendered, public, SEO)
+//   /orders/*        orders     (via the shell, signed-in)
+//   /shipping/*      shipping   (via the shell, signed-in)
+//
+// Links that cross between the storefront and the shell are different ZONES:
+// use a plain <a href>, a full page load, not client-side navigation.
 
 export type AppPath =
   | '/'
+  | `/products/${string}`
   | '/orders'
   | `/orders/${string}`
   | '/shipping'

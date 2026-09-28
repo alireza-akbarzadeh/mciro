@@ -9,14 +9,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@micro-shop/event-bus": "workspace:*",
+    "@micro-shop/observability": "workspace:*",
     "@micro-shop/ui": "workspace:*",
+    "@module-federation/enhanced": "^2.9.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0"
   },
   "devDependencies": {
     "@micro-shop/contracts": "workspace:*",
-    "@module-federation/enhanced": "^2.9.2",
     "@rspack/cli": "^2.2.7",
     "@rspack/core": "^2.2.7",
     "@rspack/dev-server": "^2.2.1",

@@ -1,0 +1,15 @@
+/*
+ * The storefront owns ITS pages (the public zone), so it loads everything:
+ * Tailwind's reset, the design-system token values, and utilities. It is a
+ * page owner, exactly like the shell is for the signed-in zone.
+ *
+ * Same tokens + same components (@micro-shop/ui) = users see one product,
+ * even though two unrelated builds render the two zones.
+ */
+
+@import "tailwindcss";
+
+@import "@micro-shop/ui/styles/theme.css";
+@import "@micro-shop/ui/styles/tokens.css";
+
+@source "../../../packages/ui/src";

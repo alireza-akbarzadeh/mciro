@@ -22,7 +22,8 @@ export type Shipment = {
   events: readonly TrackingEvent[];
 };
 
-export const shipments: readonly Shipment[] = [
+/** Seed data. The live list is in shipping-store.ts. */
+export const seedShipments: readonly Shipment[] = [
   {
     id: 'SHP-2001',
     orderId: '1001',
@@ -47,11 +48,3 @@ export const shipments: readonly Shipment[] = [
     ],
   },
 ];
-
-export function findShipment(shipmentId: string): Shipment | undefined {
-  return shipments.find((shipment) => shipment.id === shipmentId);
-}
-
-export function findShipmentForOrder(orderId: string): Shipment | undefined {
-  return shipments.find((shipment) => shipment.orderId === orderId);
-}

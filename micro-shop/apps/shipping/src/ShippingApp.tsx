@@ -1,4 +1,4 @@
-import { version as reactVersion } from 'react';
+import { useSyncExternalStore, version as reactVersion } from 'react';
 import { Link, Navigate, Route, Routes, useParams } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
 import { Badge } from '@micro-shop/ui/components/badge';
@@ -20,20 +20,27 @@ import {
   TableRow,
 } from '@micro-shop/ui/components/table';
 import { cn } from '@micro-shop/ui/lib/utils';
+import { throwIfBroken } from './fault-injection';
+import type { Shipment, ShipmentStatus } from './shipping-data';
 import {
   findShipment,
   findShipmentForOrder,
-  shipments,
-  type Shipment,
-  type ShipmentStatus,
-} from './shipping-data';
+  getShipments,
+  subscribeToShipments,
+} from './shipping-store';
 import './shipping.css';
+
+/** Re-renders when Shipping's store changes (e.g. after order.created). */
+function useShipments() {
+  return useSyncExternalStore(subscribeToShipments, getShipments);
+}
 
 // PUBLIC API of the Shipping remote. The shell mounts it at /shipping/* and
 // Shipping owns every route below that prefix. Paths here are RELATIVE, so the
 // same component works at /shipping/* in the shell and in standalone mode.
 
 export default function ShippingApp() {
+  throwIfBroken();
   return (
     <MfeFrame label="SHIPPING" accent="amber" aria-labelledby="shipping-title">
       <Card className="border-0 shadow-none">
@@ -41,7 +48,10 @@ export default function ShippingApp() {
           <CardTitle id="shipping-title" className="text-xl">
             Shipping
           </CardTitle>
-          <CardDescription>Rendered by the Shipping build · React {reactVersion}</CardDescription>
+          <CardDescription>
+            Rendered by the Shipping build <strong>v{__APP_VERSION__}</strong> · React{' '}
+            {reactVersion}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Routes>
@@ -57,6 +67,7 @@ export default function ShippingApp() {
 }
 
 function ShipmentList() {
+  const shipments = useShipments();
   return (
     <Table>
       <TableHeader>
@@ -92,6 +103,7 @@ function ShipmentList() {
  * order id, not the shipment id; resolving one to the other is Shipping's job.
  */
 function ShipmentForOrder() {
+  useShipments();
   const { orderId = '' } = useParams();
   const shipment = findShipmentForOrder(orderId);
 
@@ -114,6 +126,7 @@ function ShipmentForOrder() {
 }
 
 function ShipmentDetails() {
+  useShipments();
   const { shipmentId = '' } = useParams();
   const shipment = findShipment(shipmentId);
   if (!shipment) return <NotFound what={`shipment ${shipmentId}`} />;

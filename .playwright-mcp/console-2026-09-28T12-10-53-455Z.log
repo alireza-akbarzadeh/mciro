@@ -1,0 +1,65 @@
+[     134ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:8080/main.js:7758
+[     136ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:8080/main.js:7095
+[     156ms] [INFO] [shell] remote registry loaded {auth: dev, orders: dev, shipping: dev} @ http://localhost:8080/main.js:622
+[     357ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8080/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:31149
+[     394ms] [INFO] [shell] loading remote module auth/UserMenu @ http://localhost:8080/main.js:623
+[     398ms] [INFO] [shell] loading remote module auth/session @ http://localhost:8080/main.js:623
+[     537ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[     538ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[     544ms] [INFO] [shell] loaded remote module auth/session {ms: 146} @ http://localhost:8080/main.js:622
+[     549ms] [INFO] [shell] loaded remote module auth/UserMenu {ms: 155} @ http://localhost:8080/main.js:622
+[     556ms] [INFO] [shell] loading remote module orders/OrdersApp @ http://localhost:8080/main.js:623
+[     670ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[     671ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[     685ms] [INFO] [shell] loaded remote module orders/OrdersApp {ms: 130} @ http://localhost:8080/main.js:622
+[   80171ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:8080/main.js:7758
+[   80171ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[   80172ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:3001/remoteEntry.js:7072
+[   80172ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   80175ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:3002/remoteEntry.js:7072
+[   80176ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[   81199ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[   81199ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[   81199ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[   81214ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   81214ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   81214ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   81230ms] [ERROR] WebSocket connection to 'ws://localhost:3000/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:8080/main.js:7179
+[   81230ms] [ERROR] [rspack-dev-server] Event @ http://localhost:8080/main.js:7766
+[   81230ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[   83279ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   83279ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   83279ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   83291ms] [ERROR] WebSocket connection to 'ws://localhost:3000/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:8080/main.js:7179
+[   83292ms] [ERROR] [rspack-dev-server] Event @ http://localhost:8080/main.js:7766
+[   83292ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[   83292ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[   83292ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[   83292ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[   87320ms] [ERROR] WebSocket connection to 'ws://localhost:3000/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:8080/main.js:7179
+[   87320ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[   87320ms] [ERROR] [rspack-dev-server] Event @ http://localhost:8080/main.js:7766
+[   87320ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[   87320ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[   87320ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[   87381ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   87382ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   87382ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[   95368ms] [ERROR] WebSocket connection to 'ws://localhost:3000/ws' failed: Error during WebSocket handshake: Unexpected response code: 200 @ http://localhost:8080/main.js:7179
+[   95369ms] [ERROR] [rspack-dev-server] Event @ http://localhost:8080/main.js:7766
+[   95369ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[   95401ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[   95402ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[   95402ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[   95479ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[   95479ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[   95479ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072
+[  111450ms] [ERROR] WebSocket connection to 'ws://localhost:3000/ws' failed: Error during WebSocket handshake: Unexpected response code: 200 @ http://localhost:8080/main.js:7179
+[  111450ms] [ERROR] [rspack-dev-server] Event @ http://localhost:8080/main.js:7766
+[  111450ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:8080/main.js:7758
+[  111474ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[  111474ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[  111474ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[  111505ms] [ERROR] WebSocket connection to 'ws://localhost:3001/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/remoteEntry.js:6493
+[  111505ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3001/remoteEntry.js:7080
+[  111505ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3001/remoteEntry.js:7072

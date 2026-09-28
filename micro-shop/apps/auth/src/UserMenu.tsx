@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { Button } from '@micro-shop/ui/components/button';
 import { MfeLabel } from '@micro-shop/ui/components/mfe-frame';
+import { throwIfBroken } from './fault-injection';
 import { getSession, logout, subscribe } from './session-store';
 import './auth.css';
 
@@ -8,6 +9,7 @@ import './auth.css';
 // goes (the header); Auth decides WHAT it shows.
 
 export default function UserMenu() {
+  throwIfBroken();
   const session = useSyncExternalStore(subscribe, getSession);
 
   return (

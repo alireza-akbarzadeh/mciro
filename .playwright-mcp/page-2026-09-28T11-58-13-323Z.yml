@@ -1,0 +1,79 @@
+- generic [active] [ref=f48e1]:
+  - banner [ref=f48e2]:
+    - generic [ref=f48e3]: STOREFRONT
+    - link "Micro Shop" [ref=f48e4] [cursor=pointer]:
+      - /url: /
+    - navigation "Main" [ref=f48e5]:
+      - link "Products" [ref=f48e6] [cursor=pointer]:
+        - /url: /
+      - link "Orders" [ref=f48e7] [cursor=pointer]:
+        - /url: /orders
+      - link "Shipping" [ref=f48e8] [cursor=pointer]:
+        - /url: /shipping
+    - link "Signed in as Ada Lovelace · My orders" [ref=f48e10] [cursor=pointer]:
+      - /url: /orders
+  - main [ref=f48e11]:
+    - generic [ref=f48e12]:
+      - generic [ref=f48e13]: STOREFRONT
+      - generic [ref=f48e14]:
+        - generic [ref=f48e15]:
+          - heading "Desk gear for people who build things" [level=1] [ref=f48e16]
+          - paragraph [ref=f48e17]: "This page is public and server-rendered. View the page source: every product is already in the HTML."
+        - list [ref=f48e18]:
+          - listitem [ref=f48e19]:
+            - link "Peripherals Mechanical keyboard Hot-swappable switches, aluminium case, USB-C. $129.00" [ref=f48e20] [cursor=pointer]:
+              - /url: /products/mechanical-keyboard
+              - generic [ref=f48e21]:
+                - generic [ref=f48e22]:
+                  - generic [ref=f48e23]: Peripherals
+                  - generic [ref=f48e24]: Mechanical keyboard
+                  - generic [ref=f48e25]: Hot-swappable switches, aluminium case, USB-C.
+                - generic [ref=f48e26]: $129.00
+          - listitem [ref=f48e27]:
+            - link "Audio Noise-cancelling headphones Adaptive noise cancelling, 40-hour battery. $249.00" [ref=f48e28] [cursor=pointer]:
+              - /url: /products/noise-cancelling-headphones
+              - generic [ref=f48e29]:
+                - generic [ref=f48e30]:
+                  - generic [ref=f48e31]: Audio
+                  - generic [ref=f48e32]: Noise-cancelling headphones
+                  - generic [ref=f48e33]: Adaptive noise cancelling, 40-hour battery.
+                - generic [ref=f48e34]: $249.00
+          - listitem [ref=f48e35]:
+            - link "Displays 27\" monitor 1440p IPS panel, 144 Hz, USB-C with 90 W charging. $319.00" [ref=f48e36] [cursor=pointer]:
+              - /url: /products/27-inch-monitor
+              - generic [ref=f48e37]:
+                - generic [ref=f48e38]:
+                  - generic [ref=f48e39]: Displays
+                  - generic [ref=f48e40]: 27" monitor
+                  - generic [ref=f48e41]: 1440p IPS panel, 144 Hz, USB-C with 90 W charging.
+                - generic [ref=f48e42]: $319.00
+          - listitem [ref=f48e43]:
+            - link "Desk Monitor arm Gas-spring arm for screens up to 32\". $89.00" [ref=f48e44] [cursor=pointer]:
+              - /url: /products/monitor-arm
+              - generic [ref=f48e45]:
+                - generic [ref=f48e46]:
+                  - generic [ref=f48e47]: Desk
+                  - generic [ref=f48e48]: Monitor arm
+                  - generic [ref=f48e49]: Gas-spring arm for screens up to 32".
+                - generic [ref=f48e50]: $89.00
+          - listitem [ref=f48e51]:
+            - link "Desk Standing desk Dual-motor, 160 × 80 cm, four memory presets. $540.00" [ref=f48e52] [cursor=pointer]:
+              - /url: /products/standing-desk
+              - generic [ref=f48e53]:
+                - generic [ref=f48e54]:
+                  - generic [ref=f48e55]: Desk
+                  - generic [ref=f48e56]: Standing desk
+                  - generic [ref=f48e57]: Dual-motor, 160 × 80 cm, four memory presets.
+                - generic [ref=f48e58]: $540.00
+          - listitem [ref=f48e59]:
+            - link "Accessories USB-C cable Braided, 2 m, 100 W, USB 3.2. $12.00" [ref=f48e60] [cursor=pointer]:
+              - /url: /products/usb-c-cable
+              - generic [ref=f48e61]:
+                - generic [ref=f48e62]:
+                  - generic [ref=f48e63]: Accessories
+                  - generic [ref=f48e64]: USB-C cable
+                  - generic [ref=f48e65]: Braided, 2 m, 100 W, USB 3.2.
+                - generic [ref=f48e66]: $12.00
+  - contentinfo [ref=f48e67]: Server-rendered by Next.js (storefront zone, port 3004). Signed-in pages are served by the Module Federation shell (port 3000). The gateway on port 8080 routes between them.
+  - button "Open Next.js Dev Tools" [ref=f48e73] [cursor=pointer]
+  - alert [ref=f48e77]

@@ -1,0 +1,151 @@
+[      69ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7131
+[      70ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6468
+[     157ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:31149
+[     243ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[     244ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[    1051ms] [INFO] [auth] user logged in u-ada @ http://localhost:3001/src_session-store_ts.js:320
+[    1063ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/mf-manifest.json:0
+[    1063ms] [WARNING] [ Federation Runtime ] Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+    at http://localhost:3000/main.js:3130:9
+    at logAndReport (http://localhost:3000/main.js:86:9)
+    at Object.error (http://localhost:3000/main.js:3129:89)
+    at getManifest (http://localhost:3000/main.js:1354:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1399:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1273:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1465:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1872:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1639:55)
+    at async Promise.all (index 0) @ http://localhost:3000/main.js:5020
+[    1376ms] [ERROR] %o
+
+%s
+
+%s
+ Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+while loading "./OrdersApp" from webpack/container/reference/orders
+    at http://localhost:3000/main.js:3130:9
+    at logAndReport (http://localhost:3000/main.js:86:9)
+    at Object.error (http://localhost:3000/main.js:3129:89)
+    at getManifest (http://localhost:3000/main.js:1354:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1399:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1273:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1465:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1872:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1639:55)
+    at async Promise.all (index 0) The above error occurred in one of your React components. React will try to recreate this component tree from scratch using the error boundary you provided, RemoteBoundary. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:9797
+[    1377ms] [ERROR] [shell] remote "orders" failed Error: [ Federation Runtime ]: Failed to get manifest. #RUNTIME-003
+args: {"manifestUrl":"http://localhost:3002/mf-manifest.json","moduleName":"orders","hostName":"shell"}
+View the docs to see how to solve: https://module-federation.io/guide/troubleshooting/runtime#runtime-003
+Original Error Message:
+ TypeError: Failed to fetch
+while loading "./OrdersApp" from webpack/container/reference/orders
+    at http://localhost:3000/main.js:3130:9
+    at logAndReport (http://localhost:3000/main.js:86:9)
+    at Object.error (http://localhost:3000/main.js:3129:89)
+    at getManifest (http://localhost:3000/main.js:1354:21)
+    at async asyncLoadProcess (http://localhost:3000/main.js:1399:25)
+    at async SnapshotHandler.loadRemoteSnapshotInfo (http://localhost:3000/main.js:1273:27)
+    at async Array.afterResolve (http://localhost:3000/main.js:1465:48)
+    at async RemoteHandler.getRemoteModuleAndOptions (http://localhost:3000/main.js:1872:21)
+    at async RemoteHandler.loadRemote (http://localhost:3000/main.js:1639:55)
+    at async Promise.all (index 0) 
+    at Lazy (<anonymous>)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1174:9)
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1124:22)
+    at SessionGate (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:365:26)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1174:9)
+    at RequireSession (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:328:26)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Outlet (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2572:56)
+    at main (<anonymous>)
+    at div (<anonymous>)
+    at Layout (<anonymous>)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Routes (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2724:19)
+    at App (<anonymous>)
+    at Router (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2654:29)
+    at BrowserRouter (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:3403:26) @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1184
+[  110086ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  110087ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  110280ms] [ERROR] %o
+
+%s
+
+%s
+ Error: Element type is invalid. Received a promise that resolves to: [object Object]. Lazy element type must resolve to a class or function.
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:12198:19)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:18987:11)
+    at performWorkOnRoot (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:18096:35)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:20667:7)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:31705:48) The above error occurred in one of your React components. React will try to recreate this component tree from scratch using the error boundary you provided, RemoteBoundary. @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:9797
+[  110281ms] [ERROR] [shell] remote "orders" failed Error: Element type is invalid. Received a promise that resolves to: [object Object]. Lazy element type must resolve to a class or function.
+    at beginWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:12198:19)
+    at runWithFiberInDEV (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:1048:30)
+    at performUnitOfWork (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:19178:22)
+    at workLoopSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:19006:41)
+    at renderRootSync (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:18987:11)
+    at performWorkOnRoot (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:18096:35)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:20667:7)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:31705:48) 
+    at Lazy (<anonymous>)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1174:9)
+    at Remote (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1124:22)
+    at SessionGate (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:365:26)
+    at Suspense (<anonymous>)
+    at RemoteBoundary (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1174:9)
+    at RequireSession (http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:328:26)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Outlet (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2572:56)
+    at main (<anonymous>)
+    at div (<anonymous>)
+    at Layout (<anonymous>)
+    at RenderedRoute (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:7904:26)
+    at Routes (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2724:19)
+    at App (<anonymous>)
+    at Router (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:2654:29)
+    at BrowserRouter (http://localhost:3000/vendors-node_modules_pnpm_react-router_8_4_0_react-do_8c7b91c66c8115d08033ff54fc817791_node_m-4a854a.js:3403:26) @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1184
+[  199969ms] [INFO] [rspack-dev-server] App updated. Recompiling... @ http://localhost:3000/main.js:7131
+[  200111ms] [INFO] [rspack-dev-server] App hot update... @ http://localhost:3000/main.js:7131
+[  200112ms] [LOG] [HMR] Checking for updates on the server... @ http://localhost:3000/main.js:6468
+[  200136ms] [WARNING] [HMR] Cannot apply update. Need to do a full reload! @ http://localhost:3000/main.js:6470
+[  200136ms] [WARNING] [HMR] Error: Aborted because ./src/remote.tsx is not accepted
+Update propagation: ./src/remote.tsx -> ./src/App.tsx -> ./src/bootstrap.tsx -> ./src/index.ts
+    at hotApplyHandler (http://localhost:3000/main.js:9342:20)
+    at http://localhost:3000/main.js:8681:10
+    at Array.map (<anonymous>)
+    at internalApply (http://localhost:3000/main.js:8680:43)
+    at http://localhost:3000/main.js:8655:15
+    at waitForBlockingPromises (http://localhost:3000/main.js:8606:37)
+    at http://localhost:3000/main.js:8653:13 @ http://localhost:3000/main.js:6470
+[  200220ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3000/main.js:7131
+[  200222ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3000/main.js:6468
+[  200319ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/vendors-node_modules_pnpm_react-dom_19_3_0_react_19_3_0_node_modules_react-dom_client_js-node-534a50.js:31149
+[  200434ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3001/remoteEntry.js:7072
+[  200436ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3001/remoteEntry.js:6409
+[  200444ms] [WARNING] [DEBUG] remote module shape auth 0 {"default":"function"} @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1139
+[  200520ms] [INFO] [rspack-dev-server] Server started: Hot Module Replacement enabled, Live Reloading enabled, Progress disabled, Overlay enabled. @ http://localhost:3002/remoteEntry.js:7072
+[  200520ms] [LOG] [HMR] Waiting for update signal from WDS... @ http://localhost:3002/remoteEntry.js:6409
+[  200527ms] [WARNING] [DEBUG] remote module shape orders 0 {"default":"function"} @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1139
+[  200529ms] [WARNING] [DEBUG] remote module shape orders 0 {"default":"function"} @ http://localhost:3000/src_bootstrap_tsx-webpack_sharing_consume_default_react-dom_react-dom.js:1139
+[  222207ms] [INFO] [rspack-dev-server] Disconnected! @ http://localhost:3002/remoteEntry.js:7072
+[  222207ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[  223301ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[  223302ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[  223302ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072
+[  225362ms] [ERROR] WebSocket connection to 'ws://localhost:3002/ws' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3002/remoteEntry.js:6493
+[  225362ms] [ERROR] [rspack-dev-server] Event @ http://localhost:3002/remoteEntry.js:7080
+[  225362ms] [INFO] [rspack-dev-server] Trying to reconnect... @ http://localhost:3002/remoteEntry.js:7072

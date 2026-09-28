@@ -1,0 +1,29 @@
+- generic [ref=f31e3]:
+  - banner [ref=f31e4]:
+    - generic [ref=f31e5]: SHELL
+    - link "Micro Shop" [ref=f31e6] [cursor=pointer]:
+      - /url: /
+    - navigation "Main" [ref=f31e7]:
+      - link "Home" [ref=f31e8] [cursor=pointer]:
+        - /url: /
+      - link "Orders" [ref=f31e9] [cursor=pointer]:
+        - /url: /orders
+      - link "Shipping" [ref=f31e10] [cursor=pointer]:
+        - /url: /shipping
+    - generic [ref=f31e11]:
+      - generic [ref=f31e12]: React 19.3.0
+      - generic "Loading auth" [ref=f31e13]
+  - main [ref=f31e14]:
+    - status [ref=f31e15]:
+      - paragraph [ref=f31e16]:
+        - text: Loading
+        - code [ref=f31e17]: auth
+        - text: remote…
+  - complementary "Event log" [ref=f31e21]:
+    - generic [ref=f31e22]:
+      - generic [ref=f31e23]: SHELL
+      - strong [ref=f31e24]: Event log
+      - generic [ref=f31e25]: (0)
+      - button "Hide" [expanded] [ref=f31e26]
+    - list [ref=f31e27]:
+      - listitem [ref=f31e28]: No events yet. Sign in, or create an order on the Orders page.

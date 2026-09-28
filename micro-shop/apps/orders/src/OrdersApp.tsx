@@ -1,5 +1,5 @@
-import { version as reactVersion } from 'react';
-import { Link, Route, Routes, useParams } from 'react-router';
+import { useSyncExternalStore, version as reactVersion } from 'react';
+import { Link, Route, Routes, useNavigate, useParams } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
 import { Badge } from '@micro-shop/ui/components/badge';
 import { Button } from '@micro-shop/ui/components/button';
@@ -21,8 +21,14 @@ import {
   TableRow,
 } from '@micro-shop/ui/components/table';
 import { cn } from '@micro-shop/ui/lib/utils';
-import { findOrder, orderTotal, orders, type Order, type OrderStatus } from './orders-data';
+import { orderTotal, type OrderStatus } from './orders-data';
+import { throwIfBroken } from './fault-injection';
+import { createTestOrder, findOrder, getSnapshot, subscribeToOrders } from './orders-store';
 import './orders.css';
+
+function useOrders() {
+  return useSyncExternalStore(subscribeToOrders, getSnapshot);
+}
 
 // PUBLIC API of the Orders remote (listed in module-federation.config.mjs).
 // Keep this surface small: a component with no props. Anything the shell passes
@@ -35,6 +41,7 @@ import './orders.css';
 const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 export default function OrdersApp() {
+  throwIfBroken();
   return (
     <MfeFrame label="ORDERS" accent="emerald" aria-labelledby="orders-title">
       <Card className="border-0 shadow-none">
@@ -42,7 +49,9 @@ export default function OrdersApp() {
           <CardTitle id="orders-title" className="text-xl">
             Orders
           </CardTitle>
-          <CardDescription>Rendered by the Orders build · React {reactVersion}</CardDescription>
+          <CardDescription>
+            Rendered by the Orders build <strong>v{__APP_VERSION__}</strong> · React {reactVersion}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Routes>
@@ -57,6 +66,31 @@ export default function OrdersApp() {
 }
 
 function OrderList() {
+  const navigate = useNavigate();
+
+  function handleCreate() {
+    const order = createTestOrder();
+    navigate(order.id);
+  }
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Creating an order publishes <code>order.created</code>. Shipping reacts to it.
+        </p>
+        <Button size="sm" onClick={handleCreate}>
+          Create test order
+        </Button>
+      </div>
+      <OrderTable />
+    </div>
+  );
+}
+
+function OrderTable() {
+  const { orders } = useOrders();
+
   return (
     <Table>
       <TableHeader>
@@ -92,13 +126,16 @@ function OrderList() {
 
 function OrderDetails() {
   const { orderId = '' } = useParams();
+  const { ordersWithShipment } = useOrders();
   const order = findOrder(orderId);
   if (!order) return <NotFound what={`order #${orderId}`} />;
 
   // A link INTO another micro-frontend. Orders knows the order id, not the
   // shipment id, so it uses the entry point Shipping publishes for exactly this.
   const trackingUrl: AppPath = `/shipping/order/${order.id}`;
-  const hasShipment = order.status === 'shipped' || order.status === 'delivered';
+  // Orders' read model of a Shipping fact, filled by `shipment.created` events.
+  const hasShipment = ordersWithShipment.has(order.id);
+  const awaitingShipment = !hasShipment && order.status === 'paid';
 
   return (
     <div className="grid gap-4">
@@ -121,6 +158,13 @@ function OrderDetails() {
           </Button>
         )}
       </div>
+
+      {awaitingShipment && (
+        <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
+          Waiting for Shipping to announce a shipment (<code>shipment.created</code>). If Shipping
+          isn't loaded yet, open <strong>Shipping</strong> once: it replays missed events.
+        </p>
+      )}
 
       <Table>
         <TableHeader>

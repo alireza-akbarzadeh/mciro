@@ -5,6 +5,11 @@
 // What matters here is the boundary, not the security.
 
 import type { Session, User } from '@micro-shop/contracts';
+import { createPublisher } from '@micro-shop/event-bus';
+import { createLogger } from '@micro-shop/observability';
+
+const publish = createPublisher('auth');
+const log = createLogger('auth');
 
 /** What only Auth sees: the public Session plus the credential. */
 type StoredSession = Session & {
@@ -58,7 +63,9 @@ export async function login(email: string, password: string): Promise<Session> {
     expiresAt: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
   };
   setStored(session);
-  console.info('[auth] user logged in', user.id);
+  log.info('user logged in', { userId: user.id });
+  // Identity facts other apps may react to (e.g. clear per-user caches on logout).
+  publish('auth.user.logged-in', { version: 1, userId: user.id });
   return { user: session.user, expiresAt: session.expiresAt };
 }
 
@@ -66,14 +73,29 @@ export function logout(): void {
   if (!stored) return;
   const userId = stored.user.id;
   setStored(null);
-  console.info('[auth] user logged out', userId);
+  log.info('user logged out', { userId });
+  publish('auth.user.logged-out', { version: 1, userId });
 }
 
 function setStored(next: StoredSession | null): void {
   stored = next;
   snapshot = toPublic(next);
   writeStorage(next);
+  writeDisplayNameCookie(next);
   for (const listener of listeners) listener();
+}
+
+// The storefront (Next.js) is a different ZONE: it shares no JavaScript with the
+// shell, only the domain. A cookie is how identity crosses that boundary. This
+// one holds a DISPLAY NAME for "Signed in as Ada", never the token. In
+// production an auth backend sets an HttpOnly session cookie instead, which
+// JavaScript can't read at all.
+const DISPLAY_NAME_COOKIE = 'micro-shop-user';
+
+function writeDisplayNameCookie(session: StoredSession | null): void {
+  document.cookie = session
+    ? `${DISPLAY_NAME_COOKIE}=${encodeURIComponent(session.user.name)}; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`
+    : `${DISPLAY_NAME_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
 }
 
 function toPublic(session: StoredSession | null): Session | null {

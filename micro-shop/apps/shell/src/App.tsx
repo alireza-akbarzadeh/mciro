@@ -1,4 +1,4 @@
-import { lazy, Suspense, version as reactVersion, type ReactNode } from 'react';
+import { Suspense, useState, version as reactVersion, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
 import { Alert, AlertDescription } from '@micro-shop/ui/components/alert';
@@ -12,15 +12,19 @@ import {
 } from '@micro-shop/ui/components/card';
 import { MfeLabel } from '@micro-shop/ui/components/mfe-frame';
 import { Skeleton } from '@micro-shop/ui/components/skeleton';
-import { useSession } from './use-session';
+import { EventLog } from './EventLog';
+import { loadRemoteModule } from './load-remote';
+import { Remote, RemoteBoundary } from './remote';
+import { resetSessionApi, useSession } from './use-session';
 
-// Each of these imports crosses an application boundary. At build time the shell
+// Each of these loads crosses an application boundary. At build time the shell
 // knows nothing about their code; at runtime the federation runtime fetches them
-// from their own servers. React.lazy turns that network round-trip into Suspense.
-const OrdersApp = lazy(() => import('orders/OrdersApp'));
-const ShippingApp = lazy(() => import('shipping/ShippingApp'));
-const UserMenu = lazy(() => import('auth/UserMenu'));
-const LoginForm = lazy(() => import('auth/LoginForm'));
+// from their own servers. <Remote> adds loading, error isolation and retry.
+// Module-level functions, so their identity is stable across renders.
+const loadOrdersApp = () => loadRemoteModule('orders/OrdersApp');
+const loadShippingApp = () => loadRemoteModule('shipping/ShippingApp');
+const loadUserMenu = () => loadRemoteModule('auth/UserMenu');
+const loadLoginForm = () => loadRemoteModule('auth/LoginForm');
 
 /**
  * TOP-LEVEL routing, owned by the shell. The shell decides which application
@@ -35,17 +39,17 @@ export function App() {
         <Route
           path="orders/*"
           element={
-            <ProtectedRemote remote="orders">
-              <OrdersApp />
-            </ProtectedRemote>
+            <RequireSession>
+              <Remote name="orders" load={loadOrdersApp} />
+            </RequireSession>
           }
         />
         <Route
           path="shipping/*"
           element={
-            <ProtectedRemote remote="shipping">
-              <ShippingApp />
-            </ProtectedRemote>
+            <RequireSession>
+              <Remote name="shipping" load={loadShippingApp} />
+            </RequireSession>
           }
         />
         <Route path="*" element={<NotFound />} />
@@ -59,37 +63,39 @@ function Layout() {
     <div className="min-h-screen">
       <header className="flex items-center gap-6 border-b-2 border-blue-600 bg-card px-6 py-3">
         <MfeLabel label="SHELL" accent="blue" />
-        <Link to="/" className="text-lg font-bold">
+        {/* "/" belongs to the storefront zone behind the gateway (:8080), so these are
+            plain <a> links: a full page load, not client-side routing. On :3000
+            directly, "/" is the shell's own overview page. */}
+        <a href="/" className="text-lg font-bold">
           Micro Shop
-        </Link>
+        </a>
         <nav className="flex gap-1" aria-label="Main">
-          <NavItem to="/" end>
-            Home
-          </NavItem>
+          <a href="/" className={buttonVariants({ variant: 'ghost' })}>
+            Store
+          </a>
           <NavItem to="/orders">Orders</NavItem>
           <NavItem to="/shipping">Shipping</NavItem>
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <span className="text-sm text-muted-foreground">React {reactVersion}</span>
           {/* The shell decides WHERE the user menu goes; Auth decides WHAT it shows. */}
-          <Suspense fallback={<Skeleton className="h-10 w-40" aria-label="Loading user" />}>
-            <UserMenu />
-          </Suspense>
+          <Remote name="auth" load={loadUserMenu} variant="inline" />
         </div>
       </header>
 
-      <main className="mx-auto my-8 max-w-4xl px-4">
+      <main className="mx-auto my-8 max-w-4xl px-4 pb-80">
         <Outlet />
       </main>
+
+      <EventLog />
     </div>
   );
 }
 
-function NavItem({ to, end, children }: { to: AppPath; end?: boolean; children: string }) {
+function NavItem({ to, children }: { to: AppPath; children: string }) {
   return (
     <NavLink
       to={to}
-      end={end}
       className={({ isActive }) => buttonVariants({ variant: isActive ? 'secondary' : 'ghost' })}
     >
       {children}
@@ -98,25 +104,33 @@ function NavItem({ to, end, children }: { to: AppPath; end?: boolean; children: 
 }
 
 /**
- * Loading → session check → remote. Two Suspense boundaries so the user sees
- * WHICH remote is being fetched.
- */
-function ProtectedRemote({ remote, children }: { remote: string; children: ReactNode }) {
-  return (
-    <Suspense fallback={<RemoteLoading remote="auth" />}>
-      <RequireSession>
-        <Suspense fallback={<RemoteLoading remote={remote} />}>{children}</Suspense>
-      </RequireSession>
-    </Suspense>
-  );
-}
-
-/**
  * Composition policy, owned by the shell: "this view needs a signed-in user".
  * The shell does not know HOW sign-in works; it only asks Auth whether a session
  * exists and, if not, renders Auth's own form in its place.
+ *
+ * If Auth itself can't be reached, the boundary FAILS CLOSED: the protected
+ * remote is not rendered, because nobody can say who the user is.
  */
 function RequireSession({ children }: { children: ReactNode }) {
+  const [attempt, setAttempt] = useState(0);
+  return (
+    <RemoteBoundary
+      key={attempt}
+      name="auth"
+      variant="page"
+      onRetry={() => {
+        resetSessionApi();
+        setAttempt((value) => value + 1);
+      }}
+    >
+      <Suspense fallback={<RemoteLoading remote="auth" />}>
+        <SessionGate>{children}</SessionGate>
+      </Suspense>
+    </RemoteBoundary>
+  );
+}
+
+function SessionGate({ children }: { children: ReactNode }) {
   const session = useSession();
   if (session) return children;
 
@@ -131,7 +145,7 @@ function RequireSession({ children }: { children: ReactNode }) {
           </span>
         </AlertDescription>
       </Alert>
-      <LoginForm />
+      <Remote name="auth" load={loadLoginForm} />
     </div>
   );
 }
@@ -143,6 +157,8 @@ const deepLinks: { path: AppPath; owner: string; note: string }[] = [
   { path: '/shipping/order/1002', owner: 'Shipping', note: 'resolves order → shipment' },
   { path: '/shipping/order/1003', owner: 'Shipping', note: 'order with no shipment yet' },
 ];
+
+const breakLinks = ['/orders?break=orders', '/shipping?break=shipping', '/?break=auth'];
 
 function Home() {
   return (
@@ -169,6 +185,20 @@ function Home() {
               <span className="text-muted-foreground">
                 {link.owner}: {link.note}
               </span>
+            </li>
+          ))}
+        </ul>
+        <p>
+          <strong>Break it on purpose.</strong> Stop any app's dev server, or add{' '}
+          <code>?break=&lt;app&gt;</code> to make a remote crash while rendering. Only that area
+          shows a fallback; everything else keeps working:
+        </p>
+        <ul className="grid gap-2">
+          {breakLinks.map((link) => (
+            <li key={link} className="font-mono">
+              <Link to={link} className="text-primary underline underline-offset-4">
+                {link}
+              </Link>
             </li>
           ))}
         </ul>
