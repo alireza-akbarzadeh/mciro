@@ -53,10 +53,18 @@ Consequences:
 - A production setup keeps the token out of JavaScript entirely (an `HttpOnly` cookie set by an
   auth backend or BFF), and Auth's public API exposes identity, never credentials.
 
-## Startup now depends on two remotes
+## Startup depends on every remote
 
-With `shareStrategy: 'version-first'` the Shell fetches **both** manifests before rendering.
-Stop either Auth or Orders and the Shell shows a blank page. Stage 6 fixes that.
+With `shareStrategy: 'version-first'` the Shell fetches **every** remote's manifest (Auth,
+Orders, Shipping) before rendering. Stop any one of them and the Shell shows a blank page. The
+failure-isolation stage fixes that.
+
+## Orders and Shipping: linked by URL, not by code
+
+Shipping stores an order **id**, never order data. Orders links to
+`/shipping/order/:orderId`; Shipping resolves the shipment and redirects to
+`/shipping/:shipmentId`. Both paths are typed by `AppPath` in `@micro-shop/contracts`. See
+[GUIDE.md, Chapter 5](GUIDE.md#chapter-5-routing-and-the-shipping-app).
 
 ## Duplication
 

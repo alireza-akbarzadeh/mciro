@@ -1,59 +1,57 @@
 # micro-shop
 
-A deliberately small micro-frontend architecture for learning **Module Federation 2.0** with
-**Rspack 2**, **React 19**, **TypeScript**, **pnpm workspaces**, and a shared **shadcn/ui +
-Tailwind v4** design system.
+A deliberately small, working **micro-frontend** architecture for learning and teaching
+**Module Federation 2.0**, built with **Rspack 2**, **React 19**, **React Router 8**,
+**TypeScript**, **pnpm workspaces**, **Tailwind CSS v4** and **shadcn/ui**.
 
-This is not an e-commerce app. It is the smallest system that makes each micro-frontend
-concept visible: independent builds, runtime loading, shared dependencies, contracts,
-failure isolation and independent deployment.
+> 📘 **New here? Start with the [guide](docs/GUIDE.md).** It explains every decision in this
+> repository chapter by chapter, with diagrams, code, questions and experiments.
 
-## Current stage: shared UI + contracts
-
-```
-Browser
-  └── Shell   localhost:3000   host: layout, navigation, "Orders needs a session"
-        ├── Auth    localhost:3001   remote: auth/session, auth/LoginForm, auth/UserMenu
-        └── Orders  localhost:3002   remote: orders/OrdersApp
-
-packages/ui          shadcn/ui components + theme tokens   (bundled into each app at build time)
-packages/contracts   public types between apps             (types only: zero runtime bytes)
+```mermaid
+flowchart LR
+    browser["Browser"] --> shell["SHELL :3000<br/>layout · routes · policy"]
+    shell -- runtime --> auth["AUTH :3001<br/>session · login · user menu"]
+    shell -- runtime --> orders["ORDERS :3002<br/>/orders/*"]
+    shell -- runtime --> shipping["SHIPPING :3003<br/>/shipping/*"]
 ```
 
-| App    | Role   | Port | Exposes                                  |
-| ------ | ------ | ---- | ---------------------------------------- |
-| shell  | host   | 3000 | nothing                                  |
-| auth   | remote | 3001 | `./session`, `./LoginForm`, `./UserMenu` |
-| orders | remote | 3002 | `./OrdersApp`                            |
+| App      | Role   | Port | Exposes                                  | Owns URLs     |
+| -------- | ------ | ---- | ---------------------------------------- | ------------- |
+| shell    | host   | 3000 | nothing                                  | `/`           |
+| auth     | remote | 3001 | `./session`, `./LoginForm`, `./UserMenu` | none          |
+| orders   | remote | 3002 | `./OrdersApp`                            | `/orders/*`   |
+| shipping | remote | 3003 | `./ShippingApp`                          | `/shipping/*` |
 
-Port 3003 is reserved for shipping. Mock login: `ada@example.com` / `demo`.
+| Package                 | What                                         | Shared how                          |
+| ----------------------- | -------------------------------------------- | ----------------------------------- |
+| `@micro-shop/ui`        | shadcn/ui components + theme tokens          | build time (bundled into each app)  |
+| `@micro-shop/contracts` | public types: session API, URLs (`AppPath`)  | build time, types only (0 bytes)    |
 
-## Running
+## Quick start
 
 Requires Node ≥ 22.12 and pnpm.
 
 ```bash
 pnpm install
-
-# Separate applications, separate dev servers (start remotes first)
-pnpm dev:auth
-pnpm dev:orders
-pnpm dev:shell
-
-# or all at once (still three processes, three servers)
-pnpm dev
+pnpm dev            # starts all four apps (four separate processes)
 ```
 
-Open http://localhost:3000. Each labeled, dashed box (`SHELL`, `AUTH`, `ORDERS`) is code built
-and served by that application.
+Open http://localhost:3000 and sign in with `ada@example.com` / `demo`.
 
-## Building
+Or run each application on its own, the way each team would:
 
 ```bash
-pnpm build:auth     # → apps/auth/dist
-pnpm build:orders   # → apps/orders/dist
-pnpm build:shell    # → apps/shell/dist
-pnpm build          # all
+pnpm dev:auth       # http://localhost:3001
+pnpm dev:orders     # http://localhost:3002
+pnpm dev:shipping   # http://localhost:3003
+pnpm dev:shell      # http://localhost:3000
+```
+
+## Build and check
+
+```bash
+pnpm build          # every app → apps/<app>/dist (separate artifacts)
+pnpm build:orders   # one app
 pnpm typecheck      # all apps and packages
 ```
 
@@ -64,19 +62,22 @@ cd packages/ui
 pnpm dlx shadcn@latest add dialog
 ```
 
-## Docs
+## Documentation
 
-- [docs/module-federation.md](docs/module-federation.md): host, remote, exposes, shared, manifest, async boundary
-- [docs/architecture.md](docs/architecture.md): domain ownership, the Auth boundary
-- [docs/shared-packages.md](docs/shared-packages.md): ui vs contracts, build-time vs runtime sharing, Tailwind across MFEs
+| Document | Read it for |
+| --- | --- |
+| [docs/GUIDE.md](docs/GUIDE.md) | **The full guide**: why, how, diagrams, exercises, presenting to a team |
+| [docs/module-federation.md](docs/module-federation.md) | Deep dive: MF configuration, the network sequence, the async boundary |
+| [docs/architecture.md](docs/architecture.md) | Deep dive: ownership, the Auth boundary, remote code and origins |
+| [docs/shared-packages.md](docs/shared-packages.md) | Deep dive: build-time vs runtime sharing, contracts, Tailwind across apps |
 
 ## Roadmap
 
-1. ✅ Shell loads Orders
-2. ✅ Auth remote
-3. ✅ Shared UI (shadcn) + contracts
-4. Shipping + URL routing (shell owns top-level routes, remotes own their sub-routes)
-5. Cross-MFE events (`order.created` → Shipping)
-6. Failure isolation (an unreachable remote must not blank the shell)
-7. Next.js `storefront` for SEO pages + a local reverse proxy composing it with the shell
+1. ✅ Shell loads Orders (host, remote, shared, manifest)
+2. ✅ Auth remote (business boundaries)
+3. ✅ Shared UI (shadcn/ui) + contracts
+4. ✅ Shipping + URL routing (cross-app navigation through URLs)
+5. Cross-app events (`order.created` → Shipping reacts)
+6. Failure isolation (a missing remote must not blank the shell)
+7. Next.js storefront for SEO pages + a local reverse proxy
 8. Independent deployment, versioning, rollback, observability, tests
