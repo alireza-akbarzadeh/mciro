@@ -1,7 +1,0 @@
-[      53ms] [INFO] [shell] remote registry loaded {auth: 0.1.0, orders: 0.2.0, shipping: 0.1.0} @ http://localhost:8080/main.js:0
-[      84ms] [INFO] [shell] loading remote module auth/UserMenu @ http://localhost:8080/main.js:0
-[      84ms] [INFO] [shell] loading remote module auth/session @ http://localhost:8080/main.js:0
-[     110ms] [INFO] [shell] loaded remote module auth/session {ms: 26} @ http://localhost:8080/main.js:0
-[     111ms] [INFO] [shell] loaded remote module auth/UserMenu {ms: 27} @ http://localhost:8080/main.js:0
-[     116ms] [INFO] [shell] loading remote module orders/OrdersApp @ http://localhost:8080/main.js:0
-[     163ms] [INFO] [shell] loaded remote module orders/OrdersApp {ms: 47} @ http://localhost:8080/main.js:0

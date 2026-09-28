@@ -53,11 +53,12 @@ Consequences:
 - A production setup keeps the token out of JavaScript entirely (an `HttpOnly` cookie set by an
   auth backend or BFF), and Auth's public API exposes identity, never credentials.
 
-## Startup depends on every remote
+## Startup no longer depends on any remote
 
-With `shareStrategy: 'version-first'` the Shell fetches **every** remote's manifest (Auth,
-Orders, Shipping) before rendering. Stop any one of them and the Shell shows a blank page. The
-failure-isolation stage fixes that.
+Originally, with `shareStrategy: 'version-first'`, the Shell fetched **every** remote's
+manifest before rendering, so stopping any one of them blanked the whole page. The shell now
+uses `'loaded-first'`, wraps each remote in its own error boundary and fails closed when Auth
+is unreachable. See [GUIDE, Chapter 7](GUIDE.md#chapter-7-failure-isolation).
 
 ## Orders and Shipping: linked by URL, not by code
 

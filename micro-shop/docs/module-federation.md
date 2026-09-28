@@ -1,5 +1,12 @@
 # Module Federation — how Stage 1 works
 
+> **Scope of this document:** the Stage 1 setup (one host, one remote, hard-coded `remotes`,
+> `version-first`). The finished shell evolved: it loads remotes with the runtime API and
+> `shareStrategy: 'loaded-first'` ([GUIDE, Chapter 7](GUIDE.md#chapter-7-failure-isolation)),
+> and reads remote URLs from a registry instead of its config
+> ([GUIDE, Chapter 9](GUIDE.md#chapter-9-production-deploy-version-observe-test)). The
+> concepts below still apply unchanged.
+
 ## The one-sentence model
 
 Several **separate builds** end up in **one browser page**. Each build ships a small
