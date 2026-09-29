@@ -6,10 +6,12 @@
  *
  * Remotes load utilities only (see apps/orders/src/orders.css). Every app
  * declares the same layer order, so layers from different stylesheets merge:
- * theme < base < components < utilities, regardless of which file loaded first.
+ * theme < base < components < remote-utilities < utilities, regardless of
+ * which file loaded first. Remotes' utilities sit BELOW the page's, so a remote
+ * can never override the shell's (e.g. its `.hidden` beating our `md:flex`).
  */
 
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
@@ -18,3 +20,13 @@
 @import "@micro-shop/ui/styles/tokens.css";
 
 @source "../../../packages/ui/src";
+
+/*
+ * The remotes' markup too. Then this top layer holds every class they use, in
+ * Tailwind's order, so the composed page resolves each class from ONE correctly
+ * sorted stylesheet. (Build time only: the shell doesn't import their code.)
+ */
+@source "../../auth/src";
+@source "../../orders/src";
+@source "../../shipping/src";
+@source "../../cart/src";

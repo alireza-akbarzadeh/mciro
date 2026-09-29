@@ -10,13 +10,22 @@
  *   - Unlayered rules (plain CSS, Tailwind v3) beat every layered rule on the
  *     page, so they would override the shell's utilities. Keep everything layered.
  *
- * The utilities it generates are identical to the shell's for the same class
- * (same Tailwind version, same theme), so duplicates are harmless, just bytes.
+ * Its utilities go in their OWN layer, `remote-utilities`, BELOW the page's
+ * `utilities`. The same class from two builds is NOT harmless: Tailwind sorts
+ * `hidden` before `md:flex` within ONE stylesheet, but across stylesheets the
+ * later one wins. A remote's `.hidden`, loaded after the shell's CSS, would beat
+ * the shell's `md:flex` and hide its navigation. In a lower layer, a remote
+ * can't override the page's utilities, whatever it contains.
+ *
+ * The shell's build scans every remote's source too (apps/shell/src/shell.css),
+ * so the page's top layer already has these classes, correctly ordered. This
+ * layer is the fallback for classes the shell's build hasn't seen yet (a remote
+ * deployed with new markup), and all there is in standalone mode.
  */
 
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 @import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/utilities.css" layer(remote-utilities);
 
 @import "@micro-shop/ui/styles/theme.css";
 

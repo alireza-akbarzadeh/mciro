@@ -9,12 +9,15 @@
 //                                                         → storefront (Next.js)
 //   /api/cart/*                                           → cart-api (Fastify, the Cart team's backend)
 //   /api/auth/*                                           → auth-api (Fastify, users and sessions)
+//   /api/orders/*                                         → orders-api (Fastify, the customer's orders)
 //   everything else: /orders/*, /shipping/*, /cart/*, /checkout, shell assets
 //                                                         → shell (Module Federation host)
 //
 // Remote micro-frontends (auth, orders, shipping, cart) are NOT behind the
 // gateway: the shell loads them from their own origins, the way it would from a
 // CDN. APIs ARE behind it: same origin as the page, so no CORS, and cookies work.
+// Service-to-service routes (/internal/*) are deliberately NOT routed: they're
+// only reachable service to service, with the shared service token.
 
 import http from 'node:http';
 import net from 'node:net';
@@ -26,6 +29,7 @@ const zones = {
   shell: { host: '127.0.0.1', port: Number(process.env.SHELL_PORT ?? 3000) },
   'cart-api': { host: '127.0.0.1', port: Number(process.env.CART_API_PORT ?? 4005) },
   'auth-api': { host: '127.0.0.1', port: Number(process.env.AUTH_API_PORT ?? 4001) },
+  'orders-api': { host: '127.0.0.1', port: Number(process.env.ORDERS_API_PORT ?? 4002) },
   // Production simulation only (infra/prod/start.mjs sets CDN_PORT).
   cdn: { host: '127.0.0.1', port: Number(process.env.CDN_PORT ?? 8081) },
 };
@@ -37,6 +41,7 @@ function zoneFor(pathname) {
   if (pathname === '/mfe-registry.json' && process.env.CDN_PORT) return 'cdn';
   if (pathname === '/api/cart' || pathname.startsWith('/api/cart/')) return 'cart-api';
   if (pathname.startsWith('/api/auth/')) return 'auth-api';
+  if (pathname === '/api/orders' || pathname.startsWith('/api/orders/')) return 'orders-api';
   if (pathname === '/') return 'storefront';
   if (pathname.startsWith('/products/') || pathname === '/products') return 'storefront';
   if (pathname.startsWith('/categories/')) return 'storefront';
@@ -108,5 +113,6 @@ server.listen(PORT, () => {
   console.log(`[gateway]   / /products/* /search /_next/*  → storefront :${zones.storefront.port}`);
   console.log(`[gateway]   /api/cart/*                      → cart-api   :${zones['cart-api'].port}`);
   console.log(`[gateway]   /api/auth/*                      → auth-api   :${zones['auth-api'].port}`);
+  console.log(`[gateway]   /api/orders/*                    → orders-api :${zones['orders-api'].port}`);
   console.log(`[gateway]   everything else                  → shell      :${zones.shell.port}`);
 });

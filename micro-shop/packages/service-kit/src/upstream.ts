@@ -7,20 +7,30 @@ export class UpstreamUnavailableError extends Error {
 }
 
 export type FetchJsonOptions = {
+  /** Default GET; POST when `body` is given. */
+  method?: 'GET' | 'POST';
+  /** Sent as JSON. */
+  body?: unknown;
   /** Default 2 s. A slow dependency must not make every request slow. */
   timeoutMs?: number;
   /** Extra request headers, e.g. forwarding the browser's cookie to the Auth API. */
   headers?: Record<string, string>;
 };
 
-/** GETs JSON from another service. Throws UpstreamUnavailableError on any failure. */
+/** Calls another service and reads its JSON answer. Throws UpstreamUnavailableError on any failure. */
 export async function fetchJson(
   url: string,
-  { timeoutMs = 2_000, headers = {} }: FetchJsonOptions = {},
+  { method, body, timeoutMs = 2_000, headers = {} }: FetchJsonOptions = {},
 ): Promise<unknown> {
   try {
     const response = await fetch(url, {
-      headers: { accept: 'application/json', ...headers },
+      method: method ?? (body === undefined ? 'GET' : 'POST'),
+      headers: {
+        accept: 'application/json',
+        ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

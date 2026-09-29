@@ -26,7 +26,6 @@ export type AppPath =
   /** The query parameter is part of the contract: other apps may link to a search. */
   | `/search?q=${string}`
   | '/orders'
-  /** Includes /orders/checkout/:checkoutId, where Orders resolves a checkout to its order. */
   | `/orders/${string}`
   | '/cart'
   /** Adds one of a product and shows the cart. A plain link, so it works from any zone. */

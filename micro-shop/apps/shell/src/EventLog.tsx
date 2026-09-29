@@ -20,9 +20,33 @@ const badgeStylesBySource: Record<AppName, string> = {
   cart: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
 };
 
+// Minimized by default: open, the panel covers the bottom-right of every page
+// (and whatever button is there). Each viewer's choice is remembered in this browser.
+const OPEN_KEY = 'micro-shop:event-log-open';
+
+function readOpen(): boolean {
+  try {
+    return localStorage.getItem(OPEN_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function saveOpen(open: boolean): void {
+  try {
+    localStorage.setItem(OPEN_KEY, String(open));
+  } catch {
+    // Storage blocked (private mode, sandbox): the choice lasts for this page only.
+  }
+}
+
 export function EventLog() {
   const [events, setEvents] = useState<readonly EventEnvelope[]>(getEventLog);
-  const [open, setOpen] = useState(true);
+  const [open, setOpenState] = useState(readOpen);
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    saveOpen(next);
+  };
   const [filterSource, setFilterSource] = useState<AppName | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
@@ -59,6 +83,8 @@ export function EventLog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-label={`Open event log (${events.length} events)`}
+        aria-expanded={false}
         className="fixed bottom-4 right-4 z-50 flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-background/90 px-4 py-2 text-xs font-semibold text-foreground shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:border-blue-500/50 dark:border-slate-800"
       >
         <span className="relative flex h-2 w-2">

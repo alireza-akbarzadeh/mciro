@@ -49,8 +49,9 @@ export const envelope: EventEnvelope<'shipment.created'> = {
 };
 
 export const checkoutCompleted: MicroShopEvents['checkout.completed'] = {
-  version: 1,
+  version: 2,
   checkoutId: 'c1',
+  orderId: '1005',
   customer: { id: 'u-ada', name: 'Ada Lovelace' },
   items: [{ productSlug: 'standing-desk', name: 'Standing desk', quantity: 1, unitPrice: 540 }],
 };

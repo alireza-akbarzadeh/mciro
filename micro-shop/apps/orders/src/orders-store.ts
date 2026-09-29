@@ -1,29 +1,41 @@
-// Orders' state. Private to Orders, in memory, owned by nobody else.
+// Orders' state in the page. Private to Orders.
 //
 // Two kinds of data live here:
-//   - Orders' OWN data: the orders, created from Cart's `checkout.completed`.
+//   - Orders' OWN data: the signed-in customer's orders, from the Orders API
+//     (apps/orders-api, behind the gateway at /api/orders). The server owns
+//     them; this is the page's copy.
 //   - A local READ MODEL of a fact owned by Shipping: "this order has a
 //     shipment". Orders never asks Shipping or imports its code; it listens for
 //     `shipment.created` and remembers the order id. This is how one domain
 //     learns about another without coupling to it.
 
+import type { ApiError, OrdersResponse, OrderView } from '@micro-shop/orders-api/api-types';
 import { createPublisher, subscribe } from '@micro-shop/event-bus';
-import { createLogger } from '@micro-shop/observability';
-import { seedOrders, type Order } from './orders-data';
+import { createLogger, errorData } from '@micro-shop/observability';
 
 const publish = createPublisher('orders');
 const log = createLogger('orders');
 
-type OrdersSnapshot = {
-  orders: readonly Order[];
+export type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+export type OrdersSnapshot = {
+  status: LoadStatus;
+  /** A reload is running (the list stays visible meanwhile). */
+  refreshing: boolean;
+  orders: readonly OrderView[];
+  /** Set when status is 'error': what to tell the customer. */
+  error: string | null;
   /** Order ids Shipping has announced a shipment for. */
   ordersWithShipment: ReadonlySet<string>;
 };
 
-// In production this would come from the backend. Here, the seed orders that
-// already have seed shipments in Shipping.
+// Shipping's seed shipments (SHP-2001, SHP-2002) ship the seed orders #1001
+// and #1002. In production this read model would be filled from the backend too.
 let snapshot: OrdersSnapshot = {
-  orders: seedOrders,
+  status: 'idle',
+  refreshing: false,
+  orders: [],
+  error: null,
   ordersWithShipment: new Set(['1001', '1002']),
 };
 
@@ -40,74 +52,80 @@ export function subscribeToOrders(listener: () => void): () => void {
   };
 }
 
-function update(next: OrdersSnapshot): void {
-  snapshot = next;
+// useSyncExternalStore requires getSnapshot to return the SAME object until
+// something changes, so the snapshot is replaced, never mutated.
+function update(changes: Partial<OrdersSnapshot>): void {
+  snapshot = { ...snapshot, ...changes };
   for (const listener of listeners) listener();
 }
 
-export function findOrder(orderId: string): Order | undefined {
+export function findOrder(orderId: string): OrderView | undefined {
   return snapshot.orders.find((order) => order.id === orderId);
 }
 
-/** The order created for a checkout, if Orders has seen that checkout. */
-export function findOrderByCheckout(checkoutId: string): Order | undefined {
-  return snapshot.orders.find((order) => order.checkoutId === checkoutId);
+let inFlight: Promise<void> | null = null;
+
+/** Loads the customer's orders from the API. Concurrent calls share one request. */
+export function refreshOrders(): Promise<void> {
+  inFlight ??= (async () => {
+    update({ status: snapshot.status === 'ready' ? 'ready' : 'loading', refreshing: true, error: null });
+    try {
+      const response = await fetch('/api/orders', { headers: { accept: 'application/json' } });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as Partial<ApiError> | null;
+        throw new Error(
+          response.status === 401
+            ? 'Sign in to see your orders.'
+            : (body?.message ?? `Orders are unavailable (HTTP ${response.status}).`),
+        );
+      }
+      const { orders } = (await response.json()) as OrdersResponse;
+      update({ status: 'ready', refreshing: false, orders, error: null });
+    } catch (error) {
+      log.error('loading orders failed', errorData(error));
+      update({
+        status: 'error',
+        refreshing: false,
+        error: error instanceof Error && !(error instanceof TypeError) ? error.message : 'Orders are unavailable right now.',
+      });
+    } finally {
+      inFlight = null;
+    }
+  })();
+  return inFlight;
 }
 
-function nextOrderId(): string {
-  return String(Math.max(...snapshot.orders.map((order) => Number(order.id))) + 1);
+/** Loads the orders the first time a view needs them. */
+export function ensureOrdersLoaded(): void {
+  if (snapshot.status === 'idle') void refreshOrders();
 }
 
-/** Adds an order and announces it. Every new order goes through here. */
-function placeOrder(order: Order): void {
-  update({ ...snapshot, orders: [...snapshot.orders, order] });
-  // A fact, in the past tense. Orders doesn't know who listens.
-  publish('order.created', { version: 1, orderId: order.id });
-  log.info('order created', { orderId: order.id });
-}
+// Checkout happens in Cart, and the Cart API has the Orders API create the
+// order on the server. Cart then announces `checkout.completed` with the order
+// id; Orders shows the new order and announces `order.created` to the rest of
+// the page (Shipping reacts to it).
+//
+// Subscribed at module load with `replay`, because the customer checks out
+// BEFORE Orders' code has loaded: Cart then navigates to /orders/:orderId,
+// which loads Orders.
+const announced = new Set<string>();
 
-const demoCustomers = ['Ada Lovelace', 'Grace Hopper', 'Margaret Hamilton', 'Katherine Johnson'];
-
-/** Simulates a checkout without the Cart app: adds a paid order and announces it. */
-export function createTestOrder(): Order {
-  const order: Order = {
-    id: nextOrderId(),
-    customer: demoCustomers[snapshot.orders.length % demoCustomers.length] ?? 'Test customer',
-    createdAt: new Date().toISOString().slice(0, 10),
-    status: 'paid',
-    lines: [{ product: 'Test product', quantity: 1, unitPrice: 42 }],
-  };
-  placeOrder(order);
-  return order;
-}
-
-// Cart's checkout is how real orders arrive. Subscribed at module load with
-// `replay`, because the customer usually checks out BEFORE Orders' code has
-// loaded: Cart then navigates to /orders/checkout/:id, which loads Orders.
 subscribe(
   'checkout.completed',
   (event) => {
     const { payload } = event;
-    if (payload.version !== 1) {
-      log.warn('ignoring unknown checkout.completed version', { payload });
+    if (payload.version !== 2) {
+      log.warn('ignoring checkout.completed version without an order id', { version: payload.version });
       return;
     }
-    // Idempotent by business key: one order per checkout, however often the
-    // fact is delivered (replay, duplicate publish, HMR re-subscribe…).
-    if (findOrderByCheckout(payload.checkoutId)) return;
+    // Idempotent: replay or a duplicate publish may deliver the same fact again.
+    if (announced.has(payload.orderId)) return;
+    announced.add(payload.orderId);
 
-    placeOrder({
-      id: nextOrderId(),
-      checkoutId: payload.checkoutId,
-      customer: payload.customer.name,
-      createdAt: event.occurredAt.slice(0, 10),
-      status: 'paid',
-      lines: payload.items.map((item) => ({
-        product: item.name,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-      })),
-    });
+    // A fact, in the past tense. Orders doesn't know who listens.
+    publish('order.created', { version: 1, orderId: payload.orderId });
+    log.info('order created', { orderId: payload.orderId, checkoutId: payload.checkoutId });
+    if (snapshot.status !== 'idle') void refreshOrders();
   },
   { replay: true },
 );
@@ -124,7 +142,7 @@ subscribe(
     const { orderId } = event.payload;
     // Idempotent: replay may deliver the same fact again.
     if (snapshot.ordersWithShipment.has(orderId)) return;
-    update({ ...snapshot, ordersWithShipment: new Set(snapshot.ordersWithShipment).add(orderId) });
+    update({ ordersWithShipment: new Set(snapshot.ordersWithShipment).add(orderId) });
   },
   { replay: true },
 );

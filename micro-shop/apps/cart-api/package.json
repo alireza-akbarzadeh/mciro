@@ -21,6 +21,7 @@
     "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@micro-shop/orders-api": "workspace:*",
     "@micro-shop/contracts": "workspace:*",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",

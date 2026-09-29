@@ -34,8 +34,9 @@ createRoot(container).render(
   <StrictMode>
     <BrowserRouter>
       <div className="border-b border-amber-200 bg-amber-50 px-6 py-2.5 text-sm">
-        <strong>Orders: standalone mode</strong> (localhost:3002). No shell and no login here;
-        the Orders team develops against this page.
+        <strong>Orders: standalone mode</strong> (localhost:3002). No shell and no login form
+        here: the Orders API shows the orders of whoever is signed in on{' '}
+        <a className="underline" href="http://localhost:8080/orders">localhost:8080</a>.
       </div>
       <main className="mx-auto my-8 max-w-4xl px-4">
         <Routes>

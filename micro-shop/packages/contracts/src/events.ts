@@ -26,17 +26,23 @@ export type MicroShopEvents = {
   'auth.user.logged-in': { version: 1; userId: string };
   'auth.user.logged-out': { version: 1; userId: string };
   /**
-   * A signed-in customer bought what was in their cart. Orders reacts by
-   * creating the order.
+   * A signed-in customer bought what was in their cart, and the order exists:
+   * the Cart API had the Orders API create it, on the server, before emptying
+   * the cart. Orders reacts by showing it and announcing `order.created`.
+   *
+   * Version 2 added `orderId`. In version 1 the order didn't exist yet: Orders
+   * created it in the browser from the items. Orders ignores version 1 now.
    *
    * Why the items travel with the event, despite "thin payloads": they ARE the
    * fact. What was bought, how many, and at what price is only true at this
    * moment. Prices change later, so a reference to the cart would not be enough.
    */
   'checkout.completed': {
-    version: 1;
-    /** Unique per checkout. Orders uses it to create exactly one order. */
+    version: 2;
+    /** Unique per checkout. */
     checkoutId: string;
+    /** The order the Orders API created for this checkout. */
+    orderId: string;
     customer: Customer;
     items: readonly CheckoutItem[];
   };

@@ -19,7 +19,7 @@ test('the session cookie is HttpOnly: page scripts can’t read it', async ({ pa
 
 test('a wrong password is refused', async ({ page }) => {
   await page.goto('/orders');
-  await page.getByLabel('Password').fill('not-the-password');
+  await page.getByLabel('Password', { exact: true }).fill('not-the-password');
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByText('Invalid email or password')).toBeVisible();
 });
@@ -34,30 +34,30 @@ test('the account menu shows who you are and signs you out, on the server too', 
   await expect(page.getByRole('banner')).toContainText('Guest');
   // Reload: the server agrees the session is over.
   await page.reload();
-  await expect(page.getByLabel('Password')).toBeVisible();
+  await expect(page.getByLabel('Password', { exact: true })).toBeVisible();
 });
 
 test('a visitor creates an account and is signed in with it', async ({ page }) => {
   const email = `e2e-${Date.now()}@example.com`;
   await page.goto('/orders');
-  await page.getByRole('button', { name: 'Create one' }).click();
+  await page.getByRole('tab', { name: 'Create account' }).click();
 
   await page.getByLabel('Full name').fill('Katherine Johnson');
   await page.getByLabel('Email address').fill(email);
-  await page.getByLabel('Password').fill('orbital-mechanics');
+  await page.getByLabel('Password', { exact: true }).fill('orbital-mechanics');
   await page.getByRole('button', { name: 'Create account' }).click();
 
   await expect(page.getByRole('banner')).toContainText('Katherine Johnson');
-  await expect(page.getByLabel('Password')).toHaveCount(0);
+  await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
 
   // The same email can't be taken twice.
   await page.getByRole('button', { name: 'Account menu for Katherine Johnson' }).click();
   await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await page.goto('/orders');
-  await page.getByRole('button', { name: 'Create one' }).click();
+  await page.getByRole('tab', { name: 'Create account' }).click();
   await page.getByLabel('Full name').fill('Someone Else');
   await page.getByLabel('Email address').fill(email);
-  await page.getByLabel('Password').fill('another-password');
+  await page.getByLabel('Password', { exact: true }).fill('another-password');
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page.getByText('An account with this email already exists')).toBeVisible();
 });
@@ -66,5 +66,5 @@ test('the session survives a reload: it lives on the server, not in the page', a
   await signIn(page);
   await page.reload();
   await expect(page.getByRole('banner')).toContainText('Ada Lovelace');
-  await expect(page.getByLabel('Password')).toHaveCount(0);
+  await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
 });

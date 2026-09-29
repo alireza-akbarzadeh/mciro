@@ -57,6 +57,10 @@ export default defineConfig({
     // here. fetch() is subject to CORS; without this header the browser blocks it.
     headers: { 'Access-Control-Allow-Origin': '*' },
     historyApiFallback: true,
+    // Standalone mode calls the Orders API on this page's origin, as it does
+    // behind the gateway. It answers only for a signed-in session: sign in on
+    // http://localhost:8080 first (cookies are per host, not per port).
+    proxy: [{ context: ['/api/orders'], target: 'http://localhost:4002' }],
   },
 
   plugins: [

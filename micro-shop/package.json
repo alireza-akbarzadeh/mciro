@@ -15,6 +15,7 @@
     "dev:cart": "pnpm --filter @micro-shop/cart dev",
     "dev:cart-api": "pnpm --filter @micro-shop/cart-api dev",
     "dev:auth-api": "pnpm --filter @micro-shop/auth-api dev",
+    "dev:orders-api": "pnpm --filter @micro-shop/orders-api dev",
     "dev:storefront": "pnpm --filter @micro-shop/storefront dev",
     "dev:gateway": "pnpm --filter @micro-shop/gateway dev",
     "dev": "pnpm --parallel --filter \"./apps/*\" --filter \"./infra/*\" dev",

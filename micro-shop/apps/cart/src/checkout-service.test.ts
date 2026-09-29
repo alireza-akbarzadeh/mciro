@@ -5,13 +5,14 @@ import { subscribe } from '@micro-shop/event-bus';
 import { CartApiError } from './cart-store';
 import { completeCheckout } from './checkout-service';
 
-// Checkout = the server prices and empties the cart, then Cart announces
-// checkout.completed with exactly what the server returned.
+// Checkout = the server prices the cart, creates the order and empties the
+// cart; then Cart announces checkout.completed with exactly what it returned.
 
 const ada = { id: 'u-ada', name: 'Ada Lovelace' };
 
 const serverResult: CheckoutResult = {
   checkoutId: '7702f16e-c810-4fff-bb52-da3b50202b9d',
+  orderId: '1005',
   customer: ada,
   items: [{ productSlug: 'standing-desk', name: 'Standing desk', quantity: 1, unitPrice: 540 }],
 };
@@ -39,9 +40,9 @@ describe('checkout', () => {
   it('announces checkout.completed with what the SERVER priced', async () => {
     const fetch = answer(201, serverResult);
 
-    const checkoutId = await completeCheckout();
+    const orderId = await completeCheckout();
 
-    expect(checkoutId).toBe(serverResult.checkoutId);
+    expect(orderId).toBe('1005');
     // Nothing about who is buying is sent: the server knows from the session cookie.
     expect(fetch).toHaveBeenCalledWith(
       '/api/cart/checkout',
@@ -49,7 +50,7 @@ describe('checkout', () => {
     );
     expect(published).toHaveLength(1);
     expect(published[0]?.source).toBe('cart');
-    expect(published[0]?.payload).toEqual({ version: 1, ...serverResult });
+    expect(published[0]?.payload).toEqual({ version: 2, ...serverResult });
   });
 
   it('announces nothing when the server refuses', async () => {

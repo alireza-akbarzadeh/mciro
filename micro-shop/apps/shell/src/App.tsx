@@ -94,27 +94,11 @@ function SessionGate({ children }: { children: ReactNode }) {
     return children;
   }
 
+  // Auth's form lays itself out by the space it gets: form only in a narrow
+  // column, form + brand panel from 48rem. The shell just gives it room.
   return (
-    <div className="mx-auto flex w-full max-w-[420px] flex-col items-center py-8">
-      <div className="mb-5 w-full rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-foreground text-xs font-bold text-background">
-            A
-          </div>
-
-          <div className="min-w-0">
-            <p className="text-sm font-medium">Sign in required</p>
-
-            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-              Please sign in to continue to this page.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full">
-        <Remote name="auth" load={loadLoginForm} />
-      </div>
+    <div className="mx-auto w-full max-w-4xl py-4 sm:py-8">
+      <Remote name="auth" load={loadLoginForm} />
     </div>
   );
 }

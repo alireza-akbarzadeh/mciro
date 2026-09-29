@@ -3,6 +3,7 @@ import {
   createService,
   type FastifyReply,
   type FastifyRequest,
+  type Identity,
   isFormPost,
   sendError,
   type ServiceOptions,
@@ -13,7 +14,7 @@ import { MAX_QUANTITY } from './api-types.ts';
 import type { Catalog, CatalogSource } from './catalog.ts';
 import type { CartStore } from './cart-store.ts';
 import { cartCookie, readCartId } from './cookies.ts';
-import type { Identity } from './identity.ts';
+import type { OrdersClient } from './orders.ts';
 
 // The Cart API. Everything is under /api/cart, which the gateway routes here.
 //
@@ -21,8 +22,9 @@ import type { Identity } from './identity.ts';
 //   POST   /api/cart/items               add a product (JSON, or a plain HTML form)
 //   PUT    /api/cart/items/:productSlug  set a quantity (0 removes)
 //   DELETE /api/cart/items/:productSlug  remove a product
-//   POST   /api/cart/checkout            price the cart, empty it, return the checkout
-//                                        (signed-in customers only, asked of the Auth API)
+//   POST   /api/cart/checkout            price the cart, have the Orders API create the
+//                                        order, empty the cart (signed-in customers only,
+//                                        asked of the Auth API)
 //
 // Only cart code lives here. Logging, the error format, /health, form parsing,
 // cookies and calls to other services come from @micro-shop/service-kit.
@@ -38,11 +40,13 @@ export type AppOptions = {
   carts: CartStore;
   /** Who a request comes from: the Auth API in server.ts, a fixed customer in tests. */
   identity: Identity;
+  /** Creates the order at checkout: the Orders API in server.ts, in memory in tests. */
+  orders: OrdersClient;
   logger?: boolean;
   healthChecks?: ServiceOptions['healthChecks'];
 };
 
-export function buildApp({ catalog, carts, identity, logger = false, healthChecks }: AppOptions) {
+export function buildApp({ catalog, carts, identity, orders, logger = false, healthChecks }: AppOptions) {
   const app = createService({ name: 'cart-api', logger, healthChecks });
 
   /** The browser's cart, creating one (and its cookie) on the first write. */
@@ -174,7 +178,8 @@ export function buildApp({ catalog, carts, identity, logger = false, healthCheck
       const cartId = readCartId(request.headers.cookie);
       if (!cartId) return fail(reply, 409, 'empty_cart', 'Your cart is empty.');
 
-      // Prices first (outside the transaction: never hold a lock during a network call).
+      // Prices first, before taking the cart: the lock below should cover only
+      // the one call that must be inside it (creating the order).
       let products: Catalog;
       try {
         products = await catalog();
@@ -187,9 +192,14 @@ export function buildApp({ catalog, carts, identity, logger = false, healthCheck
         | { ok: true; checkout: CheckoutResult }
         | { ok: false; status: number; error: ApiErrorCode; message: string };
 
-      // Read, price and empty the cart as one step: a double click can't
-      // produce two checkouts, and a refused checkout leaves the cart as it was.
-      const outcome = await carts.checkout<Outcome>(cartId, (lines) => {
+      // Read, price, order and empty the cart as one step, holding the cart:
+      // a double click can't produce two orders (the second finds the cart
+      // empty), and if the order can't be created the cart stays as it was.
+      //
+      // That means a network call (Orders) while the cart is locked, bounded by
+      // a 5 s timeout. The trade: a checkout never empties a cart without an
+      // order. (The production-grade alternative is an outbox table.)
+      const outcome = await carts.checkout<Outcome>(cartId, async (lines) => {
         if (lines.length === 0) {
           return { commit: false, result: { ok: false, status: 409, error: 'empty_cart', message: 'Your cart is empty.' } };
         }
@@ -203,13 +213,24 @@ export function buildApp({ catalog, carts, identity, logger = false, healthCheck
           // The price comes from the catalog, here, now. Never from the request.
           items.push({ productSlug, name: product.name, quantity, unitPrice: product.price });
         }
-        const checkout = { checkoutId: randomUUID(), customer, items };
-        return { commit: true, result: { ok: true, checkout } };
+        const checkoutId = randomUUID();
+        try {
+          const { orderId } = await orders({ checkoutId, customer, items });
+          return { commit: true, result: { ok: true, checkout: { checkoutId, orderId, customer, items } } };
+        } catch (error) {
+          if (!(error instanceof UpstreamUnavailableError)) throw error;
+          request.log.warn({ err: error, checkoutId }, 'orders unavailable; cart left as it was');
+          const message = 'Orders can’t be placed right now. Your cart is saved, try again.';
+          return { commit: false, result: { ok: false, status: 503, error: 'orders_unavailable', message } };
+        }
       });
 
       if (!outcome.ok) return fail(reply, outcome.status, outcome.error, outcome.message);
       const { checkout } = outcome;
-      request.log.info({ checkoutId: checkout.checkoutId, lines: checkout.items.length }, 'checkout completed');
+      request.log.info(
+        { checkoutId: checkout.checkoutId, orderId: checkout.orderId, lines: checkout.items.length },
+        'checkout completed',
+      );
       return reply.code(201).send(checkout);
   });
 

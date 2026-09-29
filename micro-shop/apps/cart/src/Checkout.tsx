@@ -87,9 +87,9 @@ function CheckoutSummary() {
     setPlacing(true);
     setError(null);
     try {
-      const checkoutId = await completeCheckout();
-      // Orders owns the order. It resolves this checkout to the order it created.
-      const orderUrl: AppPath = `/orders/checkout/${checkoutId}`;
+      const orderId = await completeCheckout();
+      // The order exists (the server created it); Orders shows it.
+      const orderUrl: AppPath = `/orders/${orderId}`;
       navigate(orderUrl);
     } catch (cause) {
       setError(cause instanceof CartApiError ? cause.message : 'Checkout failed, try again.');

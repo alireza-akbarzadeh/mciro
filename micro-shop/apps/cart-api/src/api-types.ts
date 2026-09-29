@@ -34,6 +34,8 @@ export type SetQuantityBody = { quantity: number };
  */
 export type CheckoutResult = {
   checkoutId: string;
+  /** The order the Orders API created for this checkout. */
+  orderId: string;
   customer: Customer;
   items: CheckoutItem[];
 };
@@ -44,7 +46,8 @@ export type ApiErrorCode =
   | 'empty_cart'
   | 'unavailable_products'
   | 'not_signed_in'
-  | 'auth_unavailable';
+  | 'auth_unavailable'
+  | 'orders_unavailable';
 
 export type ApiError = { error: ApiErrorCode; message: string };
 

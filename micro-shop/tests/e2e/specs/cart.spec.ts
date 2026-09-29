@@ -19,7 +19,9 @@ test('the cart API sits behind the gateway, keyed by an HttpOnly cookie, priced 
 }) => {
   const added = await request.post('/api/cart/items', { data: { productSlug: 'usb-c-cable', quantity: 2 } });
   expect(added.headers()['x-served-by-zone']).toBe('cart-api');
-  expect(added.headers()['set-cookie']).toMatch(/micro-shop-cart=.*; Path=\/api\/cart; HttpOnly; SameSite=Lax/);
+  expect(added.headers()['set-cookie']).toMatch(
+    /micro-shop-cart=[\w-]+; Path=\/api\/cart; Max-Age=\d+; HttpOnly; SameSite=Lax/,
+  );
 
   // The same "browser" (cookie) sees its cart; the price came from the catalog.
   const cart = await (await request.get('/api/cart')).json();
@@ -77,7 +79,7 @@ test('checkout asks for sign-in, then Orders creates the order and Shipping ship
 
   // Checkout is behind the shell's sign-in policy; the cart itself was not.
   await page.getByRole('link', { name: 'Checkout' }).click();
-  await page.getByLabel('Password').fill('demo');
+  await page.getByLabel('Password', { exact: true }).fill('demo');
   await page.getByRole('button', { name: 'Sign in' }).click();
 
   // The shell passed the signed-in customer to Cart's checkout.

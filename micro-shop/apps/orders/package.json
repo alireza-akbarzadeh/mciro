@@ -17,6 +17,7 @@
     "react-router": "^8.4.0"
   },
   "devDependencies": {
+    "@micro-shop/orders-api": "workspace:*",
     "@micro-shop/contracts": "workspace:*",
     "@module-federation/enhanced": "^2.9.2",
     "@rspack/cli": "^2.2.7",

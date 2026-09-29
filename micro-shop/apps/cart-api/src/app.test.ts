@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import type { CartView, CheckoutResult } from './api-types.ts';
-import { UpstreamUnavailableError } from '@micro-shop/service-kit';
+import { type Identity, staticIdentity, UpstreamUnavailableError } from '@micro-shop/service-kit';
 import { buildApp } from './app.ts';
 import { createMemoryCartStore } from './cart-store.ts';
 import { type CatalogSource, staticCatalog } from './catalog.ts';
-import { type Identity, staticIdentity } from './identity.ts';
+import { memoryOrders, type OrdersClient } from './orders.ts';
 
 // The routes, with carts in memory. The Postgres store is checked against the
 // same behaviour in cart-store.contract.test.ts.
@@ -22,8 +22,12 @@ const downCatalog: CatalogSource = async () => {
 /** A browser: remembers the cart cookie between requests, like a real one. */
 const ada = { id: 'u-ada', name: 'Ada Lovelace' };
 
-function browser(source: CatalogSource = catalog, identity: Identity = staticIdentity(ada)) {
-  const app = buildApp({ catalog: source, carts: createMemoryCartStore(), identity });
+function browser(
+  source: CatalogSource = catalog,
+  identity: Identity = staticIdentity(ada),
+  orders: OrdersClient = memoryOrders(),
+) {
+  const app = buildApp({ catalog: source, carts: createMemoryCartStore(), identity, orders });
   let cookie: string | undefined;
 
   async function call(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, payload?: object) {
@@ -114,8 +118,9 @@ describe('cart API', () => {
     expect(zero.json<CartView>().lines).toEqual([]);
   });
 
-  it('prices the checkout on the server, for the signed-in customer, and empties the cart', async () => {
-    const { call } = browser();
+  it('prices the checkout on the server, has Orders create the order, and empties the cart', async () => {
+    const orders = memoryOrders();
+    const { call } = browser(catalog, staticIdentity(ada), orders);
     await call('POST', '/api/cart/items', { productSlug: 'standing-desk' });
     await call('POST', '/api/cart/items', { productSlug: 'usb-c-cable', quantity: 2 });
 
@@ -128,12 +133,17 @@ describe('cart API', () => {
     expect(response.statusCode).toBe(201);
     const result = response.json<CheckoutResult>();
     expect(result.checkoutId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(result.orderId).toBe('1001');
     expect(result.customer).toEqual({ id: 'u-ada', name: 'Ada Lovelace' });
     expect(result.items).toEqual([
       { productSlug: 'standing-desk', name: 'Standing desk', quantity: 1, unitPrice: 540 },
       { productSlug: 'usb-c-cable', name: 'USB-C cable', quantity: 2, unitPrice: 12 },
     ]);
     expect((await call('GET', '/api/cart')).json<CartView>().itemCount).toBe(0);
+    // Orders got exactly what was priced, for exactly this checkout.
+    expect(orders.received).toEqual([
+      { checkoutId: result.checkoutId, customer: result.customer, items: result.items },
+    ]);
 
     // Checking out twice (a double click) finds an empty cart.
     const again = await call('POST', '/api/cart/checkout');
@@ -155,6 +165,29 @@ describe('cart API', () => {
     const response = await browser(catalog, authDown).call('POST', '/api/cart/checkout');
     expect(response.statusCode).toBe(503);
     expect(response.json()).toMatchObject({ error: 'auth_unavailable' });
+  });
+
+  it('keeps the cart when the order can’t be created, so the customer can try again', async () => {
+    const ordersDown: OrdersClient = async () => {
+      throw new UpstreamUnavailableError('orders down (test)');
+    };
+    const { call } = browser(catalog, staticIdentity(ada), ordersDown);
+    await call('POST', '/api/cart/items', { productSlug: 'standing-desk' });
+
+    const response = await call('POST', '/api/cart/checkout');
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toMatchObject({ error: 'orders_unavailable' });
+    expect((await call('GET', '/api/cart')).json<CartView>().itemCount).toBe(1);
+  });
+
+  it('turns a double click into one order', async () => {
+    const orders = memoryOrders();
+    const { call } = browser(catalog, staticIdentity(ada), orders);
+    await call('POST', '/api/cart/items', { productSlug: 'usb-c-cable' });
+
+    const [first, second] = await Promise.all([call('POST', '/api/cart/checkout'), call('POST', '/api/cart/checkout')]);
+    expect([first.statusCode, second.statusCode].sort()).toEqual([201, 409]);
+    expect(orders.received).toHaveLength(1);
   });
 
   it('degrades when the catalog is down: the cart loads unpriced, changes wait', async () => {

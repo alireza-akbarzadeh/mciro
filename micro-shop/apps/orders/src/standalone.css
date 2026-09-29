@@ -6,7 +6,7 @@
  * loaded: it is part of main.js's chunk, and hosts only load remoteEntry.js.
  */
 
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 

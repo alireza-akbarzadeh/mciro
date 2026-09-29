@@ -25,7 +25,10 @@ export type CartStore = {
    * only if it commits, all as one step. Two checkouts of the same cart at the
    * same time (a double click) can't both succeed.
    */
-  checkout<T>(cartId: string, decide: (lines: StoredLine[]) => CheckoutDecision<T>): Promise<T>;
+  checkout<T>(
+    cartId: string,
+    decide: (lines: StoredLine[]) => CheckoutDecision<T> | Promise<CheckoutDecision<T>>,
+  ): Promise<T>;
 };
 
 /** Oldest carts are dropped beyond this, so abandoned carts can't grow memory forever. */
@@ -33,6 +36,8 @@ const MAX_CARTS = 10_000;
 
 export function createMemoryCartStore(): CartStore {
   const carts = new Map<string, StoredLine[]>();
+  /** The checkout currently running for a cart, which the next one waits for. */
+  const checkoutsInProgress = new Map<string, Promise<void>>();
 
   function save(cartId: string, lines: StoredLine[]): void {
     carts.delete(cartId); // re-insert: Map order = least recently used first
@@ -70,11 +75,25 @@ export function createMemoryCartStore(): CartStore {
       save(cartId, (carts.get(cartId) ?? []).filter((line) => line.productSlug !== productSlug));
     },
 
-    // Single-threaded JavaScript: nothing can run between reading and deleting.
+    // `decide` may await (it creates the order), and another checkout of the
+    // same cart could run meanwhile. So checkouts of one cart take turns, like
+    // the row lock in Postgres: the second one finds the cart already empty.
     async checkout(cartId, decide) {
-      const { commit, result } = decide([...(carts.get(cartId) ?? [])]);
-      if (commit) carts.delete(cartId);
-      return result;
+      const previous = checkoutsInProgress.get(cartId) ?? Promise.resolve();
+      const turn = previous.then(async () => {
+        const { commit, result } = await decide([...(carts.get(cartId) ?? [])]);
+        if (commit) carts.delete(cartId);
+        return result;
+      });
+      const settled = turn.then(
+        () => undefined,
+        () => undefined,
+      );
+      checkoutsInProgress.set(cartId, settled);
+      void settled.then(() => {
+        if (checkoutsInProgress.get(cartId) === settled) checkoutsInProgress.delete(cartId);
+      });
+      return turn;
     },
   };
 }

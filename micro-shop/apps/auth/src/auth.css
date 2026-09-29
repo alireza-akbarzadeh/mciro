@@ -3,10 +3,52 @@
  * Utilities only: no preflight, no token values. See apps/orders/src/orders.css.
  */
 
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 @import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/utilities.css" layer(remote-utilities);
 
 @import "@micro-shop/ui/styles/theme.css";
 
 @source "../../../packages/ui/src";
+
+/*
+ * Entrance motion for the sign-in screen. Namespaced (auth-*): this stylesheet
+ * loads into host pages. Keyframes, not transitions: they play once on mount.
+ */
+@layer components {
+  .auth-rise {
+    animation: auth-rise 500ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .auth-swap {
+    animation: auth-swap 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-rise,
+    .auth-swap {
+      animation-name: auth-fade;
+    }
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes auth-swap {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+    filter: blur(2px);
+  }
+}
+
+@keyframes auth-fade {
+  from {
+    opacity: 0;
+  }
+}

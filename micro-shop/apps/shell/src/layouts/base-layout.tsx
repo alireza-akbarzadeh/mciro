@@ -27,7 +27,7 @@ export function Layout() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-xs text-white font-extrabold shadow-sm shadow-blue-500/30 group-hover:scale-105 transition-transform">
                   μ
                 </span>
-                <span className="text-base sm:text-lg">Micro Shop</span>
+                <span className="whitespace-nowrap text-base sm:text-lg">Micro Shop</span>
               </a>
             </div>
 

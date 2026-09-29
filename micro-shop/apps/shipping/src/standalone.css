@@ -3,7 +3,7 @@
  * See apps/orders/src/standalone.css.
  */
 
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 

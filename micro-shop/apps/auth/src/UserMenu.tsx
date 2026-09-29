@@ -47,7 +47,7 @@ export default function UserMenu() {
                 {initials(session.user.name)}
               </AvatarFallback>
             </Avatar>
-            <span className="font-medium">{session.user.name}</span>
+            <span className="font-medium whitespace-nowrap">{session.user.name}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="grid">

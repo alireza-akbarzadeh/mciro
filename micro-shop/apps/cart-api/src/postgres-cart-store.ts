@@ -74,7 +74,7 @@ export function createPostgresCartStore(db: CartDatabase): CartStore {
           .where(eq(cartLines.cartId, cartId))
           .orderBy(asc(cartLines.addedAt), asc(cartLines.productSlug));
 
-        const { commit, result } = decide(lines);
+        const { commit, result } = await decide(lines);
         if (commit) await tx.delete(carts).where(eq(carts.id, cartId)); // lines cascade
         return result;
       });

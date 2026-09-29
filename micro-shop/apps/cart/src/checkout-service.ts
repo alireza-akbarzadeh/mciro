@@ -1,10 +1,10 @@
 // Checkout. Private to Cart.
 //
-// The Cart API checks who is signed in (with the Auth API), prices the cart and
-// empties it. Checkout still does NOT create the order: orders belong to
-// Orders. Cart announces the fact `checkout.completed` with what the server
-// returned, and Orders reacts. Moving that hand-off to the server too
-// (cart-api → orders-api) is a later stage.
+// The Cart API checks who is signed in (with the Auth API), prices the cart,
+// has the Orders API create the order, and empties the cart, all on the
+// server. Cart then announces the fact `checkout.completed` (with the order
+// id) to the other apps in the page: Orders shows the order and announces
+// `order.created`, which Shipping reacts to.
 
 import { createPublisher } from '@micro-shop/event-bus';
 import { createLogger } from '@micro-shop/observability';
@@ -14,14 +14,13 @@ const publish = createPublisher('cart');
 const log = createLogger('cart');
 
 /**
- * Checks out on the server, then hands the order to Orders as a
- * `checkout.completed` fact. Returns the checkout id, which Orders resolves to
- * its order at /orders/checkout/:checkoutId. Throws CartApiError on failure,
- * in which case nothing is announced.
+ * Checks out on the server, then announces `checkout.completed`. Returns the
+ * id of the order the server created (Orders shows it at /orders/:orderId).
+ * Throws CartApiError on failure, in which case nothing is announced.
  */
 export async function completeCheckout(): Promise<string> {
-  const { checkoutId, customer, items } = await checkout();
-  publish('checkout.completed', { version: 1, checkoutId, customer, items });
-  log.info('checkout completed', { checkoutId, lines: items.length });
-  return checkoutId;
+  const { checkoutId, orderId, customer, items } = await checkout();
+  publish('checkout.completed', { version: 2, checkoutId, orderId, customer, items });
+  log.info('checkout completed', { checkoutId, orderId, lines: items.length });
+  return orderId;
 }
