@@ -33,7 +33,9 @@ export default function LoginForm() {
       await login(email, password);
     } catch (cause) {
       setError(
-        cause instanceof InvalidCredentialsError ? cause.message : 'Sign-in failed, try again',
+        cause instanceof InvalidCredentialsError
+          ? cause.message
+          : 'Sign-in is unavailable right now, try again in a moment',
       );
     } finally {
       setPending(false);
@@ -49,8 +51,8 @@ export default function LoginForm() {
               Sign in
             </CardTitle>
             <CardDescription>
-              Mock login: <code>{demoCredentials.email}</code> or <code>grace@example.com</code>,
-              password <code>{demoCredentials.password}</code>.
+              Demo accounts: <code>{demoCredentials.email}</code>, <code>grace@example.com</code> or{' '}
+              <code>margaret@example.com</code>, password <code>{demoCredentials.password}</code>.
             </CardDescription>
           </CardHeader>
 

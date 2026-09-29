@@ -3,3 +3,7 @@ packages:
   - "packages/*"
   - "infra/*"
   - "tests/*"
+allowBuilds:
+  # Used by drizzle-kit. Its install script only verifies the binary, which comes
+  # from the @esbuild/<platform> package anyway, so no third-party script runs.
+  esbuild: false

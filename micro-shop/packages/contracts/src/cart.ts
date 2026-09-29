@@ -12,3 +12,15 @@ export type Customer = Pick<User, 'id' | 'name'>;
 export type CheckoutProps = {
   customer: Customer;
 };
+
+// "Add to cart" from any app: POST a plain HTML form to the Cart API. It works
+// without JavaScript and answers 303 See Other → /cart. The rest of the Cart
+// API is internal to the Cart team (apps/cart-api/src/api-types.ts).
+
+/** Where to POST. Owned by the Cart team (apps/cart-api), behind the gateway. */
+export type AddToCartEndpoint = '/api/cart/items';
+
+/** The form fields that endpoint accepts. */
+export type AddToCartFields = {
+  productSlug: string;
+};

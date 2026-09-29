@@ -21,16 +21,17 @@ import {
   TableHeader,
   TableRow,
 } from '@micro-shop/ui/components/table';
-import { useCatalog } from './catalog-client';
-import { CheckoutError, completeCheckout, priceCart } from './checkout-service';
+import { CartApiError } from './cart-store';
+import { completeCheckout } from './checkout-service';
 import { throwIfBroken } from './fault-injection';
-import { CatalogUnavailable, currency } from './shared';
-import { useCart } from './use-cart';
+import { CartUnavailable, currency, PricesUnavailable } from './shared';
+import { useCartState } from './use-cart';
 import './cart.css';
 
 // PUBLIC API of the Cart remote (exposed as `cart/Checkout`). The shell mounts it
 // at /checkout behind its sign-in policy, and passes the signed-in customer in
-// (CheckoutProps). Cart never talks to Auth itself.
+// (CheckoutProps) so the page can say who is ordering. The Cart API checks the
+// session itself when the order is placed: the browser's word isn't trusted.
 
 const cartUrl: AppPath = '/cart';
 
@@ -48,19 +49,27 @@ export default function Checkout({ customer }: CheckoutProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <CheckoutSummary customer={customer} />
+          <CheckoutSummary />
         </CardContent>
       </Card>
     </MfeFrame>
   );
 }
 
-function CheckoutSummary({ customer }: CheckoutProps) {
-  const cart = useCart();
-  const catalog = useCatalog();
+function CheckoutSummary() {
+  const state = useCartState();
   const navigate = useNavigate();
+  const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (state.status === 'loading') {
+    return <Skeleton className="h-24 w-full" aria-label="Loading your cart" />;
+  }
+  if (state.status === 'error') {
+    return <CartUnavailable message={state.message} />;
+  }
+
+  const { cart } = state;
   if (cart.lines.length === 0) {
     return (
       <div className="grid justify-items-start gap-3">
@@ -72,29 +81,26 @@ function CheckoutSummary({ customer }: CheckoutProps) {
     );
   }
 
-  if (catalog.status === 'loading') {
-    return <Skeleton className="h-24 w-full" aria-label="Loading prices" />;
-  }
-  if (catalog.status === 'error') {
-    return <CatalogUnavailable message={catalog.message} />;
-  }
+  const hasUnavailable = cart.pricesAvailable && cart.lines.some((line) => line.name === null);
 
-  const { lines, total, hasUnavailable } = priceCart(cart, catalog.products);
-
-  function placeOrder() {
-    if (catalog.status !== 'ready') return;
+  async function placeOrder() {
+    setPlacing(true);
+    setError(null);
     try {
-      const checkoutId = completeCheckout(customer, cart, catalog.products);
+      const checkoutId = await completeCheckout();
       // Orders owns the order. It resolves this checkout to the order it created.
       const orderUrl: AppPath = `/orders/checkout/${checkoutId}`;
       navigate(orderUrl);
     } catch (cause) {
-      setError(cause instanceof CheckoutError ? cause.message : 'Checkout failed, try again.');
+      setError(cause instanceof CartApiError ? cause.message : 'Checkout failed, try again.');
+      setPlacing(false);
     }
   }
 
   return (
     <div className="grid gap-4">
+      {!cart.pricesAvailable && <PricesUnavailable />}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -104,12 +110,12 @@ function CheckoutSummary({ customer }: CheckoutProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {lines.map(({ productSlug, quantity, product }) => (
+          {cart.lines.map(({ productSlug, quantity, name, unitPrice }) => (
             <TableRow key={productSlug}>
-              <TableCell>{product?.name ?? `${productSlug} (no longer available)`}</TableCell>
+              <TableCell>{name ?? productSlug}</TableCell>
               <TableCell className="text-right tabular-nums">{quantity}</TableCell>
               <TableCell className="text-right tabular-nums">
-                {product ? currency.format(product.price * quantity) : '—'}
+                {unitPrice === null ? '—' : currency.format(unitPrice * quantity)}
               </TableCell>
             </TableRow>
           ))}
@@ -117,7 +123,9 @@ function CheckoutSummary({ customer }: CheckoutProps) {
         <TableFooter>
           <TableRow>
             <TableCell colSpan={2}>Total</TableCell>
-            <TableCell className="text-right tabular-nums">{currency.format(total)}</TableCell>
+            <TableCell className="text-right tabular-nums">
+              {cart.total === null ? '—' : currency.format(cart.total)}
+            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
@@ -134,8 +142,11 @@ function CheckoutSummary({ customer }: CheckoutProps) {
         <Button asChild variant="ghost" size="sm">
           <Link to={cartUrl}>Back to cart</Link>
         </Button>
-        <Button onClick={placeOrder} disabled={hasUnavailable}>
-          Place order
+        <Button
+          onClick={() => void placeOrder()}
+          disabled={placing || hasUnavailable || !cart.pricesAvailable}
+        >
+          {placing ? 'Placing order…' : 'Place order'}
         </Button>
       </div>
     </div>

@@ -8,13 +8,19 @@ import { loadRemoteModule } from './load-remote';
 // Auth server can't break pages that don't need a session), and every caller
 // shares that one promise. `use()` suspends until it resolves.
 //
+// The promise also waits for Auth's first answer from its API (`ready()`), so a
+// signed-in user never sees the sign-in form flash before their session arrives.
+//
 // A failed promise stays cached until the user clicks Retry (see
 // resetSessionApi). Dropping it automatically would make React's re-renders
 // start a new request each time, the same burst described in remote.tsx.
 let sessionApi: Promise<AuthSessionModule> | null = null;
 
 function loadSessionApi(): Promise<AuthSessionModule> {
-  sessionApi ??= loadRemoteModule('auth/session');
+  sessionApi ??= loadRemoteModule('auth/session').then(async (api) => {
+    await api.ready();
+    return api;
+  });
   return sessionApi;
 }
 

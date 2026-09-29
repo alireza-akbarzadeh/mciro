@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-// Cart and checkout: a journey across both zones and four apps.
-// Storefront → Cart (guest) → Auth (sign in at checkout) → Orders → Shipping.
+// Cart and checkout: a journey across both zones, four apps and the Cart API.
+// Storefront → Cart API → Cart (guest) → Auth (sign in at checkout) → Orders → Shipping.
 
 test('the catalog read API is served by the storefront with public fields only', async ({
   request,
@@ -14,16 +14,31 @@ test('the catalog read API is served by the storefront with public fields only',
   expect(Object.keys(products[0] ?? {}).sort()).toEqual(['name', 'price', 'slug']);
 });
 
+test('the cart API sits behind the gateway, keyed by an HttpOnly cookie, priced on the server', async ({
+  request,
+}) => {
+  const added = await request.post('/api/cart/items', { data: { productSlug: 'usb-c-cable', quantity: 2 } });
+  expect(added.headers()['x-served-by-zone']).toBe('cart-api');
+  expect(added.headers()['set-cookie']).toMatch(/micro-shop-cart=.*; Path=\/api\/cart; HttpOnly; SameSite=Lax/);
+
+  // The same "browser" (cookie) sees its cart; the price came from the catalog.
+  const cart = await (await request.get('/api/cart')).json();
+  expect(cart).toMatchObject({ itemCount: 2, total: 24, lines: [{ name: 'USB-C cable', unitPrice: 12 }] });
+
+  expect((await request.post('/api/cart/items', { data: { productSlug: 'toaster' } })).status()).toBe(404);
+});
+
 test('a guest adds products from the storefront and edits the cart', async ({ page }) => {
   await page.goto('/products/standing-desk');
-  await page.getByRole('link', { name: 'Add to cart' }).click();
+  // A plain form POST to the Cart API, answered with 303 → /cart (Post/Redirect/Get).
+  await page.getByRole('button', { name: 'Add to cart' }).click();
 
-  // /cart/add replaced itself with /cart: Back or reload can't add it twice.
   await expect(page).toHaveURL(/\/cart$/);
   await expect(page.getByRole('row', { name: /Standing desk/ })).toBeVisible();
   await expect(page.getByTestId('cart-total')).toHaveText('$540.00');
   await expect(page.getByRole('link', { name: 'Cart, 1 item' })).toBeVisible();
 
+  // The cart is on the server now: reloading shows it, and doesn't post again.
   await page.reload();
   await expect(page.getByRole('link', { name: 'Cart, 1 item' })).toBeVisible();
 
@@ -40,7 +55,7 @@ test('checkout asks for sign-in, then Orders creates the order and Shipping ship
   page,
 }) => {
   await page.goto('/products/monitor-arm');
-  await page.getByRole('link', { name: 'Add to cart' }).click();
+  await page.getByRole('button', { name: 'Add to cart' }).click();
   await expect(page.getByRole('row', { name: /Monitor arm/ })).toBeVisible();
 
   // Checkout is behind the shell's sign-in policy; the cart itself was not.

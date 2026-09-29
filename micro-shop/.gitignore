@@ -12,3 +12,7 @@ infra/cdn/public/
 .mf/
 *.log
 .playwright-mcp/
+# Secrets (database URLs...). Commit .env.example with placeholders instead.
+.env
+.env.*
+!.env.example

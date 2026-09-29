@@ -51,8 +51,8 @@ export default defineConfig({
     headers: { 'Access-Control-Allow-Origin': '*' },
     historyApiFallback: true,
     // Standalone mode only. In the composed app the page's origin is the gateway,
-    // which routes /catalog.json to the storefront. Here, the dev server does it.
-    proxy: [{ context: ['/catalog.json'], target: 'http://localhost:3004' }],
+    // which routes /api/cart to the Cart API. Here, the dev server does it.
+    proxy: [{ context: ['/api/cart'], target: 'http://localhost:4005' }],
   },
 
   plugins: [

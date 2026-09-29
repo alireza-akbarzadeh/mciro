@@ -1,77 +1,62 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CatalogProduct, EventEnvelope } from '@micro-shop/contracts';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CheckoutResult } from '@micro-shop/cart-api/api-types';
+import type { EventEnvelope } from '@micro-shop/contracts';
 import { subscribe } from '@micro-shop/event-bus';
-import { addItem, clearCart, getCart } from './cart-store';
-import { CheckoutError, completeCheckout, priceCart } from './checkout-service';
+import { CartApiError } from './cart-store';
+import { completeCheckout } from './checkout-service';
 
-const catalog = new Map<string, CatalogProduct>([
-  ['standing-desk', { slug: 'standing-desk', name: 'Standing desk', price: 540 }],
-  ['usb-c-cable', { slug: 'usb-c-cable', name: 'USB-C cable', price: 12 }],
-]);
+// Checkout = the server prices and empties the cart, then Cart announces
+// checkout.completed with exactly what the server returned.
 
 const ada = { id: 'u-ada', name: 'Ada Lovelace' };
+
+const serverResult: CheckoutResult = {
+  checkoutId: '7702f16e-c810-4fff-bb52-da3b50202b9d',
+  customer: ada,
+  items: [{ productSlug: 'standing-desk', name: 'Standing desk', quantity: 1, unitPrice: 540 }],
+};
 
 const published: EventEnvelope<'checkout.completed'>[] = [];
 subscribe('checkout.completed', (event) => published.push(event));
 
+function answer(status: number, body: unknown) {
+  const fetch = vi.fn(async () => new Response(JSON.stringify(body), { status }));
+  vi.stubGlobal('fetch', fetch);
+  return fetch;
+}
+
 beforeEach(() => {
-  vi.spyOn(console, 'info').mockImplementation(() => {});
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  clearCart();
   published.length = 0;
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-describe('pricing', () => {
-  it('prices each line from the catalog and flags products that are gone', () => {
-    addItem('standing-desk');
-    addItem('usb-c-cable', 3);
-    addItem('discontinued-lamp');
-
-    const priced = priceCart(getCart(), catalog);
-    expect(priced.total).toBe(540 + 3 * 12);
-    expect(priced.hasUnavailable).toBe(true);
-    expect(priced.lines.at(-1)?.product).toBeUndefined();
-  });
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('checkout', () => {
-  it('announces checkout.completed with a snapshot of what was bought, then empties the cart', () => {
-    addItem('standing-desk');
-    addItem('usb-c-cable', 2);
+  it('announces checkout.completed with what the SERVER priced', async () => {
+    const fetch = answer(201, serverResult);
 
-    const checkoutId = completeCheckout(ada, getCart(), catalog);
+    const checkoutId = await completeCheckout();
 
+    expect(checkoutId).toBe(serverResult.checkoutId);
+    // Nothing about who is buying is sent: the server knows from the session cookie.
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/cart/checkout',
+      expect.objectContaining({ method: 'POST', body: undefined }),
+    );
     expect(published).toHaveLength(1);
-    const [event] = published;
-    expect(event?.source).toBe('cart');
-    expect(event?.payload).toEqual({
-      version: 1,
-      checkoutId,
-      customer: { id: 'u-ada', name: 'Ada Lovelace' },
-      items: [
-        { productSlug: 'standing-desk', name: 'Standing desk', quantity: 1, unitPrice: 540 },
-        { productSlug: 'usb-c-cable', name: 'USB-C cable', quantity: 2, unitPrice: 12 },
-      ],
-    });
-    expect(getCart().lines).toEqual([]);
+    expect(published[0]?.source).toBe('cart');
+    expect(published[0]?.payload).toEqual({ version: 1, ...serverResult });
   });
 
-  it('sends only the contract fields of the customer, whatever it is given', () => {
-    addItem('standing-desk');
-    const withEmail = { ...ada, email: 'ada@example.com' };
+  it('announces nothing when the server refuses', async () => {
+    answer(409, { error: 'empty_cart', message: 'Your cart is empty.' });
 
-    completeCheckout(withEmail, getCart(), catalog);
-
-    expect(published[0]?.payload.customer).toEqual({ id: 'u-ada', name: 'Ada Lovelace' });
-  });
-
-  it('refuses an empty cart or unavailable products, and keeps the cart', () => {
-    expect(() => completeCheckout(ada, getCart(), catalog)).toThrow(CheckoutError);
-
-    addItem('discontinued-lamp');
-    expect(() => completeCheckout(ada, getCart(), catalog)).toThrow(CheckoutError);
-
+    await expect(completeCheckout()).rejects.toThrow(CartApiError);
+    await expect(completeCheckout()).rejects.toThrow('Your cart is empty.');
     expect(published).toEqual([]);
-    expect(getCart().lines).toHaveLength(1);
   });
 });

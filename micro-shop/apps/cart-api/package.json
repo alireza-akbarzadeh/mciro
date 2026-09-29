@@ -1,0 +1,30 @@
+{
+  "name": "@micro-shop/cart-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Cart team's backend: carts on the server, priced from the catalog. Built on @micro-shop/service-kit; TypeScript run directly by Node.",
+  "type": "module",
+  "exports": {
+    "./api-types": "./src/api-types.ts"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --experimental-strip-types --disable-warning=ExperimentalWarning --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env --experimental-strip-types --disable-warning=ExperimentalWarning src/server.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=.env --experimental-strip-types --disable-warning=ExperimentalWarning src/db/migrate.ts",
+    "db:studio": "node --env-file-if-exists=.env node_modules/drizzle-kit/bin.cjs studio",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@micro-shop/service-kit": "workspace:*",
+    "drizzle-orm": "^0.45.3",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@micro-shop/contracts": "workspace:*",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  // Shared by every backend service (apps/*-api) and packages/service-kit.
+  // Node runs these files as they are (type stripping): imports name the real
+  // .ts file, and only syntax that can simply be erased is allowed.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "lib": ["ES2022"],
+    "types": ["node"]
+  }
+}

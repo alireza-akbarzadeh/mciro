@@ -19,8 +19,23 @@ export type Session = {
   expiresAt: string;
 };
 
+// The Auth API's one cross-team endpoint: any SERVICE may ask who a request
+// comes from, by forwarding the browser's Cookie header to it. (Browsers use
+// the `auth/session` module below instead.)
+
+/** Where to ask, on the Auth API. */
+export type SessionEndpoint = '/api/auth/session';
+
+/** Its answer. */
+export type SessionResponse = { session: Session | null };
+
 /** Shape of the module exposed as `auth/session`. */
 export type AuthSessionModule = {
+  /**
+   * Resolves once the session is known (Auth has asked its API). Until then
+   * getSession() returns null for everyone, so wait before deciding "signed out".
+   */
+  ready(): Promise<void>;
   getSession(): Session | null;
   subscribe(listener: () => void): () => void;
   logout(): void;
