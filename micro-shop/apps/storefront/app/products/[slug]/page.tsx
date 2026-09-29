@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type { AppPath } from '@micro-shop/contracts';
+import type { AddToCartEndpoint, AddToCartFields } from '@micro-shop/contracts';
 import { Badge } from '@micro-shop/ui/components/badge';
 import { Button } from '@micro-shop/ui/components/button';
 import { MfeFrame } from '@micro-shop/ui/components/mfe-frame';
@@ -13,6 +13,9 @@ import { currency, findProduct, products, SITE_URL } from '../../../lib/catalog'
 // description, Open Graph tags, a canonical URL and structured data (JSON-LD).
 
 type Props = { params: Promise<{ slug: string }> };
+
+const addToCartEndpoint: AddToCartEndpoint = '/api/cart/items';
+const productSlugField: keyof AddToCartFields = 'productSlug';
 
 /** Prerender one HTML page per product at build time (static generation). */
 export function generateStaticParams() {
@@ -61,8 +64,6 @@ export default async function ProductPage({ params }: Props) {
     },
   };
 
-  const addToCartUrl: AppPath = `/cart/add?product=${encodeURIComponent(product.slug)}`;
-
   return (
     <MfeFrame label="STOREFRONT" accent="rose">
       <article className="grid gap-5 p-5">
@@ -80,16 +81,16 @@ export default async function ProductPage({ params }: Props) {
           <p className="text-2xl font-semibold tabular-nums">{currency.format(product.price)}</p>
         </div>
         <p className="max-w-prose leading-relaxed text-muted-foreground">{product.description}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          {/* The cart belongs to the Cart app, in the shell's zone. The storefront shares no
-              code with it, only the URL contract: a plain link, no JavaScript needed here. */}
-          <Button asChild>
-            <a href={addToCartUrl}>Add to cart</a>
-          </Button>
+        {/* The cart belongs to the Cart team. The storefront shares no code with it, only a
+            contract: a plain HTML form POST to the Cart API, which answers 303 → /cart.
+            No JavaScript needed here, and adding is a POST, not a link a crawler could follow. */}
+        <form action={addToCartEndpoint} method="post" className="flex flex-wrap items-center gap-3">
+          <input type="hidden" name={productSlugField} value={product.slug} />
+          <Button type="submit">Add to cart</Button>
           <span className="text-xs text-muted-foreground">
-            Opens the cart (Cart app, in the Module Federation shell) with a full page load.
+            Opens your cart (Cart app, in the Module Federation shell) with a full page load.
           </span>
-        </div>
+        </form>
       </article>
     </MfeFrame>
   );

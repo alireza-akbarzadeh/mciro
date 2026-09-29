@@ -2,10 +2,10 @@
   "name": "@micro-shop/gateway",
   "version": "0.1.0",
   "private": true,
-  "description": "Local stand-in for a CDN / reverse proxy: routes URL paths to the storefront or the shell.",
+  "description": "Local stand-in for a CDN / reverse proxy: routes URL paths to the storefront, the shell or an API.",
   "type": "module",
   "scripts": {
-    "dev": "node server.mjs",
+    "dev": "node --watch server.mjs",
     "start": "node server.mjs"
   }
 }

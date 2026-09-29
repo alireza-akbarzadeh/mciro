@@ -1,6 +1,8 @@
 import { useEffect, version as reactVersion } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router';
+import type { CartLineView } from '@micro-shop/cart-api/api-types';
 import type { AppPath } from '@micro-shop/contracts';
+import { Alert, AlertDescription } from '@micro-shop/ui/components/alert';
 import { Button } from '@micro-shop/ui/components/button';
 import {
   Card,
@@ -21,11 +23,9 @@ import {
   TableRow,
 } from '@micro-shop/ui/components/table';
 import { addItem, MAX_QUANTITY, removeItem, setQuantity } from './cart-store';
-import { useCatalog } from './catalog-client';
-import { priceCart, type PricedLine } from './checkout-service';
 import { throwIfBroken } from './fault-injection';
-import { CatalogUnavailable, currency } from './shared';
-import { useCart } from './use-cart';
+import { CartUnavailable, currency, PricesUnavailable } from './shared';
+import { useCartState } from './use-cart';
 import './cart.css';
 
 // PUBLIC API of the Cart remote (exposed as `cart/CartApp`). The shell mounts it
@@ -45,7 +45,8 @@ export default function CartApp() {
             Cart
           </CardTitle>
           <CardDescription>
-            Rendered by the Cart build <strong>v{__APP_VERSION__}</strong> · React {reactVersion}
+            Rendered by the Cart build <strong>v{__APP_VERSION__}</strong> · React {reactVersion} ·
+            kept by the Cart API
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,9 +67,10 @@ export default function CartApp() {
 const handledVisits = new Set<string>();
 
 /**
- * /cart/add?product=<slug>: the entry point other apps link to (the storefront's
- * "Add to cart" button). Adds one item, then replaces itself with /cart, so
- * Back and reload never add the item twice.
+ * /cart/add?product=<slug>: a link-shaped entry point, kept for other apps that
+ * can only link (the URL contract promises it). The storefront POSTs a form to
+ * the Cart API instead. Adds one item, then replaces itself with /cart, so Back
+ * and reload never add the item twice.
  */
 function AddToCart() {
   const { key } = useLocation();
@@ -77,11 +79,9 @@ function AddToCart() {
   const productSlug = params.get('product') ?? '';
 
   useEffect(() => {
-    if (!handledVisits.has(key)) {
-      handledVisits.add(key);
-      addItem(productSlug);
-    }
-    navigate(cartUrl, { replace: true });
+    if (handledVisits.has(key)) return;
+    handledVisits.add(key);
+    void addItem(productSlug).then(() => navigate(cartUrl, { replace: true }));
   }, [key, productSlug, navigate]);
 
   return (
@@ -92,96 +92,106 @@ function AddToCart() {
 }
 
 function CartPage() {
-  const cart = useCart();
-  const catalog = useCatalog();
+  const state = useCartState();
 
-  if (cart.lines.length === 0) {
+  if (state.status === 'loading') {
     return (
-      <div className="grid justify-items-start gap-3">
-        <p className="text-sm">Your cart is empty.</p>
-        <BrowseProducts />
-      </div>
-    );
-  }
-
-  if (catalog.status === 'loading') {
-    return (
-      <div role="status" aria-label="Loading prices" className="grid gap-2">
+      <div role="status" aria-label="Loading your cart" className="grid gap-2">
         <Skeleton className="h-8 w-full" />
         <Skeleton className="h-8 w-full" />
       </div>
     );
   }
-
-  if (catalog.status === 'error') {
-    return <CatalogUnavailable message={catalog.message} />;
+  if (state.status === 'error') {
+    return <CartUnavailable message={state.message} />;
   }
 
-  const { lines, total, hasUnavailable } = priceCart(cart, catalog.products);
+  const { cart, error } = state;
+  const hasUnavailable = cart.pricesAvailable && cart.lines.some((line) => line.name === null);
 
   return (
     <div className="grid gap-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead>Quantity</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead>
-              <span className="sr-only">Actions</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {lines.map((line) => (
-            <CartRow key={line.productSlug} line={line} />
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={2}>Total</TableCell>
-            <TableCell className="text-right tabular-nums" data-testid="cart-total">
-              {currency.format(total)}
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableFooter>
-      </Table>
-
-      {hasUnavailable && (
-        <p className="text-sm text-destructive">
-          Some products are no longer available. Remove them to check out.
-        </p>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>That change didn’t go through: {error}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
-        <BrowseProducts label="Continue shopping" />
-        {hasUnavailable ? (
-          <Button disabled>Checkout</Button>
-        ) : (
-          <Button asChild>
-            <Link to={checkoutUrl}>Checkout</Link>
-          </Button>
-        )}
-      </div>
+      {cart.lines.length === 0 ? (
+        <div className="grid justify-items-start gap-3">
+          <p className="text-sm">Your cart is empty.</p>
+          <BrowseProducts />
+        </div>
+      ) : (
+        <>
+          {!cart.pricesAvailable && <PricesUnavailable />}
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cart.lines.map((line) => (
+                <CartRow key={line.productSlug} line={line} pricesAvailable={cart.pricesAvailable} />
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={2}>Total</TableCell>
+                <TableCell className="text-right tabular-nums" data-testid="cart-total">
+                  {cart.total === null ? '—' : currency.format(cart.total)}
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableFooter>
+          </Table>
+
+          {hasUnavailable && (
+            <p className="text-sm text-destructive">
+              Some products are no longer available. Remove them to check out.
+            </p>
+          )}
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <BrowseProducts label="Continue shopping" />
+            {hasUnavailable || !cart.pricesAvailable ? (
+              <Button disabled>Checkout</Button>
+            ) : (
+              <Button asChild>
+                <Link to={checkoutUrl}>Checkout</Link>
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-function CartRow({ line }: { line: PricedLine }) {
-  const { productSlug, quantity, product } = line;
-  const name = product?.name ?? productSlug;
+function CartRow({ line, pricesAvailable }: { line: CartLineView; pricesAvailable: boolean }) {
+  const { productSlug, quantity, name, unitPrice } = line;
+  const label = name ?? productSlug;
 
   return (
     <TableRow>
       <TableCell>
-        {product ? (
+        {name ? (
           // A link INTO the storefront's zone: plain <a>, full page load.
           <a href={`/products/${productSlug}`} className="font-medium underline-offset-4 hover:underline">
             {name}
           </a>
         ) : (
-          <span className="text-muted-foreground">{productSlug} (no longer available)</span>
+          <span className="text-muted-foreground">
+            {productSlug}
+            {pricesAvailable && ' (no longer available)'}
+          </span>
         )}
       </TableCell>
       <TableCell>
@@ -189,30 +199,35 @@ function CartRow({ line }: { line: PricedLine }) {
           <Button
             variant="outline"
             size="icon-xs"
-            aria-label={`Decrease quantity of ${name}`}
-            onClick={() => setQuantity(productSlug, quantity - 1)}
+            aria-label={`Decrease quantity of ${label}`}
+            onClick={() => void setQuantity(productSlug, quantity - 1)}
           >
             −
           </Button>
-          <span className="w-6 text-center tabular-nums" aria-label={`Quantity of ${name}`}>
+          <span className="w-6 text-center tabular-nums" aria-label={`Quantity of ${label}`}>
             {quantity}
           </span>
           <Button
             variant="outline"
             size="icon-xs"
-            aria-label={`Increase quantity of ${name}`}
+            aria-label={`Increase quantity of ${label}`}
             disabled={quantity >= MAX_QUANTITY}
-            onClick={() => setQuantity(productSlug, quantity + 1)}
+            onClick={() => void setQuantity(productSlug, quantity + 1)}
           >
             +
           </Button>
         </div>
       </TableCell>
       <TableCell className="text-right tabular-nums">
-        {product ? currency.format(product.price * quantity) : '—'}
+        {unitPrice === null ? '—' : currency.format(unitPrice * quantity)}
       </TableCell>
       <TableCell className="text-right">
-        <Button variant="ghost" size="xs" onClick={() => removeItem(productSlug)} aria-label={`Remove ${name}`}>
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={() => void removeItem(productSlug)}
+          aria-label={`Remove ${label}`}
+        >
           Remove
         </Button>
       </TableCell>

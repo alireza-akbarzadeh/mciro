@@ -1,7 +1,7 @@
 // Contract for the catalog's public READ API: GET /catalog.json.
 //
 // Producer: apps/storefront (app/catalog.json/route.ts), the team that owns the catalog.
-// Consumers: apps/cart, to turn the product slugs in a cart into names and prices.
+// Consumers: apps/cart-api (server to server), to price the product slugs in a cart.
 //
 // Like the URL contract, this is a promise to other teams: renaming a field
 // breaks every consumer, so it fails their builds here first.

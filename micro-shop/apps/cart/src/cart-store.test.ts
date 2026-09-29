@@ -1,68 +1,107 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  addItem,
-  clearCart,
-  getCart,
-  itemCount,
-  MAX_QUANTITY,
-  removeItem,
-  setQuantity,
-} from './cart-store';
+import type { CartView } from '@micro-shop/cart-api/api-types';
+
+// The client side of the cart: one shared copy of what the Cart API says.
+// fetch is replaced by a fake server whose answers the test releases by hand.
+
+function cart(itemCount: number): CartView {
+  return {
+    lines: itemCount
+      ? [{ productSlug: 'standing-desk', quantity: itemCount, name: 'Standing desk', unitPrice: 540 }]
+      : [],
+    itemCount,
+    total: itemCount * 540,
+    pricesAvailable: true,
+  };
+}
+
+type Pending = { method: string; url: string; body: unknown; respond: (status: number, body: unknown) => void };
+
+function fakeServer() {
+  const requests: Pending[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      (url: string, init: RequestInit) =>
+        new Promise<Response>((resolve) => {
+          requests.push({
+            method: init.method ?? 'GET',
+            url,
+            body: init.body ? JSON.parse(String(init.body)) : undefined,
+            respond: (status, body) => resolve(new Response(JSON.stringify(body), { status })),
+          });
+        }),
+    ),
+  );
+  return requests;
+}
+
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(() => {
-  vi.spyOn(console, 'info').mockImplementation(() => {});
-  vi.spyOn(console, 'warn').mockImplementation(() => {});
-  clearCart();
+  vi.resetModules();
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-describe('cart store', () => {
-  it('keeps product slugs and quantities, merging repeated adds', () => {
-    addItem('standing-desk');
-    addItem('usb-c-cable', 2);
-    addItem('standing-desk');
+describe('cart client', () => {
+  it('loads the cart once, for every subscriber', async () => {
+    const requests = fakeServer();
+    const store = await import('./cart-store');
+    store.subscribeToCart(() => {});
+    store.subscribeToCart(() => {});
 
-    expect(getCart().lines).toEqual([
-      { productSlug: 'standing-desk', quantity: 2 },
-      { productSlug: 'usb-c-cable', quantity: 2 },
-    ]);
-    expect(itemCount(getCart())).toBe(4);
+    expect(requests).toHaveLength(1);
+    requests[0]?.respond(200, cart(2));
+    await flush();
+    expect(store.getCartState()).toEqual({ status: 'ready', cart: cart(2), error: null });
   });
 
-  it('rejects slugs that are not slugs (they arrive in a URL)', () => {
-    expect(addItem('<script>')).toBe(false);
-    expect(addItem('')).toBe(false);
-    expect(getCart().lines).toEqual([]);
+  it('sends changes as API calls and shows the cart the server answers with', async () => {
+    const requests = fakeServer();
+    const store = await import('./cart-store');
+
+    void store.addItem('standing-desk');
+    expect(requests[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/cart/items',
+      body: { productSlug: 'standing-desk', quantity: 1 },
+    });
+    requests[0]?.respond(200, cart(1));
+    await flush();
+
+    void store.setQuantity('standing-desk', 0);
+    expect(requests[1]).toMatchObject({ method: 'PUT', url: '/api/cart/items/standing-desk', body: { quantity: 0 } });
   });
 
-  it('caps quantities and removes a line set to zero', () => {
-    addItem('monitor-arm', 50);
-    expect(getCart().lines[0]?.quantity).toBe(MAX_QUANTITY);
+  it('never lets a slow, older answer overwrite a newer one', async () => {
+    const requests = fakeServer();
+    const store = await import('./cart-store');
 
-    setQuantity('monitor-arm', 0);
-    expect(getCart().lines).toEqual([]);
+    void store.refreshCart(); // issued first, answered last
+    void store.addItem('standing-desk');
+    requests[1]?.respond(200, cart(1));
+    await flush();
+    requests[0]?.respond(200, cart(0));
+    await flush();
+
+    expect(store.getCartState()).toMatchObject({ status: 'ready', cart: { itemCount: 1 } });
   });
 
-  it('removes a single line', () => {
-    addItem('monitor-arm');
-    addItem('standing-desk');
-    removeItem('monitor-arm');
-    expect(getCart().lines.map((line) => line.productSlug)).toEqual(['standing-desk']);
-  });
+  it('keeps the last confirmed cart when a change fails, and says why', async () => {
+    const requests = fakeServer();
+    const store = await import('./cart-store');
+    void store.refreshCart();
+    requests[0]?.respond(200, cart(1));
+    await flush();
 
-  it('survives a reload through localStorage, and ignores corrupt data', async () => {
-    addItem('standing-desk', 3);
+    void store.addItem('usb-c-cable');
+    requests[1]?.respond(503, { error: 'catalog_unavailable', message: 'The catalog is unavailable, try again.' });
+    await flush();
 
-    vi.resetModules();
-    const reloaded = await import('./cart-store');
-    expect(reloaded.getCart().lines).toEqual([{ productSlug: 'standing-desk', quantity: 3 }]);
-
-    localStorage.setItem('micro-shop.cart.v1', '{"lines":[{"productSlug":"x","quantity":-1}]}');
-    vi.resetModules();
-    const corrupt = await import('./cart-store');
-    expect(corrupt.getCart().lines).toEqual([]);
-  });
-
-  it('keeps the same cart object until something changes (useSyncExternalStore rule)', () => {
-    expect(getCart()).toBe(getCart());
+    expect(store.getCartState()).toEqual({
+      status: 'ready',
+      cart: cart(1),
+      error: 'The catalog is unavailable, try again.',
+    });
   });
 });

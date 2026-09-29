@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { getCart, subscribeToCart, type Cart } from './cart-store';
+import { getCartState, subscribeToCart, type CartState } from './cart-store';
 
-/** Re-renders when the cart changes, in this tab or another one. */
-export function useCart(): Cart {
-  return useSyncExternalStore(subscribeToCart, getCart);
+/** The cart as this page knows it. The first subscriber triggers the first load. */
+export function useCartState(): CartState {
+  return useSyncExternalStore(subscribeToCart, getCartState);
 }

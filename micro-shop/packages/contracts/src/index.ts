@@ -1,5 +1,5 @@
 export type { AuthSessionModule, Session, User } from './auth';
-export type { CheckoutProps, Customer } from './cart';
+export type { AddToCartEndpoint, AddToCartFields, CheckoutProps, Customer } from './cart';
 export type { CatalogEndpoint, CatalogProduct, CatalogResponse } from './catalog';
 export type {
   AppName,

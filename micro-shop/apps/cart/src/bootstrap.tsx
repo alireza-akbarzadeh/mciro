@@ -9,8 +9,9 @@ import Checkout from './Checkout';
 // Standalone mode. Cart owns the page, so it also owns the router, and mounts
 // itself at the SAME paths the shell uses (/cart/*, /checkout). There is no
 // shell here to ask Auth who is signed in, so checkout gets a demo customer.
-// Product names and prices come from the storefront through the dev server's
-// proxy (rspack.config.mjs), so run `pnpm dev:storefront` too.
+// The cart lives in the Cart API, reached through the dev server's proxy
+// (rspack.config.mjs): run `pnpm dev:cart-api` too, and `pnpm dev:storefront`
+// for the catalog behind it.
 
 const demoCustomer: Customer = { id: 'u-ada', name: 'Ada Lovelace' };
 

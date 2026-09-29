@@ -4,7 +4,7 @@
 
 **A small but complete micro-frontend architecture you can run, break, and learn from.**
 
-Six independently built apps, one product. Runtime composition with Module Federation 2.0,
+Six independently built frontends and a backend, one product. Runtime composition with Module Federation 2.0,
 an SEO zone with Next.js, typed contracts and events, failure isolation, versioned deploys
 with instant rollback, observability, and tests, all in one pnpm workspace.
 
@@ -85,6 +85,7 @@ flowchart TB
 
     gateway -- "/ · /products/* · /search · /sitemap.xml" --> storefront["STOREFRONT :3004<br/>Next.js · prerendered HTML · SEO"]
     gateway -- "/orders/* · /shipping/* · /cart/* · /checkout" --> shell
+    gateway -- "/api/cart/*" --> cartApi["CART API :4005<br/>Fastify · the Cart team's backend"]
 
     subgraph shellBox["SHELL · Module Federation host · :3000"]
         shell["Layout · top-level routes · session policy<br/>error boundaries · remote registry · event log"]
@@ -104,7 +105,7 @@ flowchart TB
     shell -- "runtime" --> orders
     shell -- "runtime" --> shipping
     shell -- "runtime" --> cart
-    cart -. "GET /catalog.json" .-> storefront
+    cartApi -. "GET /catalog.json (prices)" .-> storefront
 ```
 
 - **Two zones behind one gateway.** Public pages come from Next.js as static HTML that search
@@ -128,13 +129,19 @@ pnpm dev            # every app + storefront + gateway, as separate processes
 
 Open **http://localhost:8080** and sign in with **`ada@example.com` / `demo`**.
 
+**Database (optional):** the Cart API keeps carts in Neon Postgres. Copy
+`apps/cart-api/.env.example` to `apps/cart-api/.env`, paste a connection string for your own
+Neon branch (not `production`), then run `pnpm db:migrate`. Without it, carts are kept in
+memory. See [Working with the database](docs/developer-overview.md#working-with-the-database).
+
 Each team can also work on its app alone, without the shell:
 
 ```bash
 pnpm dev:auth        # http://localhost:3001
 pnpm dev:orders      # http://localhost:3002
 pnpm dev:shipping    # http://localhost:3003
-pnpm dev:cart        # http://localhost:3005  (prices need dev:storefront running)
+pnpm dev:cart        # http://localhost:3005  (needs dev:cart-api and dev:storefront)
+pnpm dev:cart-api    # http://localhost:4005  the Cart API (Fastify)
 pnpm dev:shell       # http://localhost:3000  (the signed-in app without the gateway)
 pnpm dev:storefront  # http://localhost:3004  (the public site without the gateway)
 ```
@@ -159,10 +166,12 @@ Every part of the screen has a coloured label showing which app rendered it:
    **Track shipment →** appears.
 5. **Replay:** reload, create an order *before* visiting Shipping, then open Shipping. It catches
    up on the event it missed.
-6. **Shop across four apps:** sign out, open a product and click **Add to cart**. The Cart app
-   keeps it for you as a guest; its badge sits in the shell header. **Checkout** asks you to sign
-   in, then **Place order**: Cart announces `checkout.completed`, Orders creates the order, and
-   Shipping ships it the next time it loads.
+6. **Shop across four apps and an API:** sign out, open a product and click **Add to cart**.
+   That's a plain form POST to the Cart API, which keeps your cart on the server (behind an
+   HttpOnly cookie) and prices it from the catalog. The Cart app shows it; its badge sits in the
+   shell header. **Checkout** asks you to sign in, then **Place order**: the server prices and
+   empties the cart, Cart announces `checkout.completed`, Orders creates the order, and Shipping
+   ships it the next time it loads.
 7. **Break it:** open `/orders?break=orders`. Only the Orders area shows a fallback with
    **Retry**, and the rest of the page keeps working. Stop the `orders` dev server and you get
    the same result.
@@ -183,6 +192,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 | **orders** | MF remote | 3002 | `./OrdersApp` | `/orders/*` | [apps/orders](apps/orders/) |
 | **shipping** | MF remote | 3003 | `./ShippingApp` | `/shipping/*` | [apps/shipping](apps/shipping/) |
 | **cart** | MF remote | 3005 | `./CartApp`, `./Checkout`, `./CartBadge` | `/cart/*`, `/checkout` | [apps/cart](apps/cart/) |
+| **cart-api** | Fastify API | 4005 | carts in Neon Postgres (Drizzle), priced from the catalog | `/api/cart/*` | [apps/cart-api](apps/cart-api/) |
 
 **Who owns what:**
 
@@ -211,9 +221,11 @@ sees the same data.
 | [`@micro-shop/event-bus`](packages/event-bus/) | Typed publish/subscribe over `window` `CustomEvent`s, with an event log and replay for late subscribers | Yes | [docs](docs/developer-overview.md#micro-shopevent-bus) |
 | [`@micro-shop/observability`](packages/observability/) | Logger that tags every entry with its app, plus pluggable sinks (Sentry, OpenTelemetry, ...) | Yes | [docs](docs/developer-overview.md#micro-shopobservability) |
 | [`@micro-shop/ui`](packages/ui/) | shadcn/ui components and Tailwind v4 theme tokens. Presentational only | Yes | [docs](docs/shared-packages.md) |
+| [`@micro-shop/service-kit`](packages/service-kit/) | The platform every backend service is built on: configured Fastify, one error shape, `/health`, safe cookies, calls to other services, clean startup. No routes | Yes (Node) | [docs](docs/developer-overview.md#micro-shopservice-kit) |
 
 **Rule:** shared packages hold **no business logic**. `contracts` is types only, `ui` only draws
-things, and domain code stays in the app that owns it.
+things, `service-kit` only sets servers up, and domain code (a team's routes, rules and data)
+stays in the app that owns it. Share *how*, never *what*.
 
 ---
 
@@ -336,12 +348,14 @@ micro-shop/
 │   ├── orders/         MF remote: orders               :3002
 │   ├── shipping/       MF remote: shipments            :3003
 │   ├── cart/           MF remote: cart and checkout    :3005
+│   ├── cart-api/       Fastify: the Cart team's API    :4005
 │   └── storefront/     Next.js zone: public catalog    :3004
 ├── packages/
 │   ├── contracts/      types shared between apps (session API, URLs, events)
 │   ├── event-bus/      typed publish/subscribe over window, with replay
 │   ├── observability/  app-tagged logger, pluggable sinks
-│   └── ui/             shadcn/ui components, Tailwind theme, tokens
+│   ├── ui/             shadcn/ui components, Tailwind theme, tokens
+│   └── service-kit/    the platform for backend services (Fastify setup, errors, cookies)
 ├── infra/
 │   ├── gateway/        :8080, one public origin, routes URLs to zones
 │   ├── static/         static server: plays the CDN and the shell host
@@ -363,7 +377,7 @@ exposed component. See [Part 1 of the guide](docs/GUIDE.md#repository-layout).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Run every app, the storefront and the gateway in development mode |
-| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `storefront`, `gateway` |
+| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `cart-api`, `storefront`, `gateway` |
 | `pnpm build` / `pnpm build:<app>` | Build every app, or one, into its own artifact |
 | `pnpm typecheck` | Typecheck every app and package, including contract type-tests |
 | `pnpm test` | Unit tests (Vitest) |
@@ -389,6 +403,9 @@ exposed component. See [Part 1 of the guide](docs/GUIDE.md#repository-layout).
 | [TypeScript](https://www.typescriptlang.org/) | 7.0 | Types and contract tests |
 | [Vitest](https://vitest.dev/) | 5.0 | Unit tests |
 | [Playwright](https://playwright.dev/) | 1.63 | End-to-end tests |
+| [Fastify](https://fastify.dev/) | 5.12 | The Cart API, run by Node's built-in TypeScript support (no build step) |
+| [Neon](https://neon.com/) Postgres | 18 | The database: one schema per service, a branch per developer |
+| [Drizzle ORM](https://orm.drizzle.team/) / drizzle-kit | 0.45 / 0.31 | Typed schema and queries; SQL migrations generated from the schema |
 | [pnpm](https://pnpm.io/) | 12 | Workspaces |
 
 ---
@@ -455,5 +472,11 @@ Each has a checklist in the
 9. ✅ Catalog search (`/search`, server-rendered, `noindex`)
 10. ✅ Cart remote and checkout: guest carts, sign-in at checkout, `checkout.completed` → Orders →
     Shipping, a catalog read API, typed props from the shell
+11. ✅ Cart API (Fastify): carts on the server behind an HttpOnly cookie, server-side prices,
+    "Add to cart" as a plain form POST, the first backend-for-frontend behind the gateway
+12. ✅ `service-kit` for every backend service, and Neon Postgres through Drizzle: a schema per
+    service, generated migrations, atomic cart updates, a Neon branch for development
 
-Next ideas are in the [roadmap](docs/GUIDE.md#roadmap).
+Next: move the Cart → Orders hand-off to the server (an `orders-api`), and a real identity
+provider so the APIs can verify who the customer is. More ideas are in the
+[roadmap](docs/GUIDE.md#roadmap).

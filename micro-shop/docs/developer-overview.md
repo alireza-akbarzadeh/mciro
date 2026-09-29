@@ -18,6 +18,7 @@ For the step-by-step explanation of *why* the system is built this way, read
   - [`@micro-shop/event-bus`](#micro-shopevent-bus)
   - [`@micro-shop/observability`](#micro-shopobservability)
   - [`@micro-shop/ui`](#micro-shopui)
+  - [`@micro-shop/service-kit`](#micro-shopservice-kit)
 - [How it all works together](#how-it-all-works-together)
 - [Infrastructure](#infrastructure)
 - [Tests](#tests)
@@ -65,6 +66,7 @@ flowchart LR
 | [orders](../apps/orders/) | MF remote | 3002 | Orders, everything under `/orders/*` | `./OrdersApp` |
 | [shipping](../apps/shipping/) | MF remote | 3003 | Shipments and tracking, everything under `/shipping/*` | `./ShippingApp` |
 | [cart](../apps/cart/) | MF remote | 3005 | The cart (`/cart/*`, guests too) and checkout (`/checkout`, signed in) | `./CartApp`, `./Checkout`, `./CartBadge` |
+| [cart-api](../apps/cart-api/) | Fastify API | 4005 | Carts on the server, priced from the catalog | `/api/cart/*` via the gateway |
 | [storefront](../apps/storefront/) | Next.js zone | 3004 | Public catalog: `/`, `/products/*`, `/search`, sitemap, robots | Server-rendered HTML |
 | [gateway](../infra/gateway/) | Reverse proxy | 8080 | The single public origin | Routes to storefront or shell |
 
@@ -130,9 +132,8 @@ timeline, and `/order/:orderId`, which resolves an order id to its shipment and 
 Owns the shopping cart and checkout. It exposes three modules:
 
 - `cart/CartApp`, mounted at `/cart/*` **without** a session gate, so guests can fill a cart.
-  `/cart/add?product=<slug>` is the entry point other apps link to. The storefront's
-  "Add to cart" is a plain link to it. It adds one item and then replaces itself with `/cart`,
-  so Back and reload never add the item twice.
+  `/cart/add?product=<slug>` is kept as a link-shaped entry point for apps that can only link;
+  it adds one item and then replaces itself with `/cart`.
 - `cart/Checkout`, mounted at `/checkout` **behind** the shell's sign-in policy. It is the only
   remote that takes props: the shell passes the signed-in customer (`CheckoutProps`), because
   remotes never talk to Auth themselves.
@@ -140,15 +141,63 @@ Owns the shopping cart and checkout. It exposes three modules:
 
 How it works:
 
-- A cart holds product **slugs** and quantities, stored in `localStorage` on the page's origin,
-  so a guest cart survives reloads. Names and prices come from the storefront's catalog read
-  API, `GET /catalog.json` ([catalog-client.ts](../apps/cart/src/catalog-client.ts)). If that
-  API is down, Cart shows "prices unavailable" with Retry and keeps the cart.
-- **Place order** publishes `checkout.completed` with the customer and a snapshot of the items
-  (slug, name, quantity, unit price), empties the cart, and navigates to
+- The cart lives in the **Cart API** (below). [cart-store.ts](../apps/cart/src/cart-store.ts)
+  is the page's one shared copy of it: it fetches `/api/cart`, sends changes, ignores answers
+  that arrive after a newer one, and keeps the last confirmed cart (with an error message) when
+  a change fails. The cart page, checkout and the header badge all read it, so the badge
+  updates the moment you add something.
+- **Place order** calls `POST /api/cart/checkout`: the server prices and empties the cart and
+  returns the items. Cart then publishes `checkout.completed` with exactly that and navigates to
   `/orders/checkout/:checkoutId`. Cart never creates the order itself: that's Orders' job.
-- Standalone (`pnpm dev:cart`, :3005) uses a demo customer, and proxies `/catalog.json` to the
-  storefront on :3004.
+- Standalone (`pnpm dev:cart`, :3005) uses a demo customer and proxies `/api/cart` to the Cart
+  API on :4005.
+
+### Cart API (`apps/cart-api`)
+
+The Cart team's backend on :4005, behind the gateway at `/api/cart/*`, so the browser calls it on
+the page's own origin (no CORS, cookies just work). It's built on
+[`@micro-shop/service-kit`](#micro-shopservice-kit), so it contains only cart code: routes,
+rules and the cart store. Node runs its TypeScript directly, so there is no build step.
+
+| Endpoint | Does |
+| --- | --- |
+| `GET /api/cart` | The cart, priced from the catalog. If the catalog is down it still answers, unpriced (`pricesAvailable: false`). |
+| `POST /api/cart/items` | Adds a product. Accepts JSON, or a **plain HTML form** (the storefront's button), which gets `303 → /cart`. Unknown products are a 404. |
+| `PUT /api/cart/items/:slug` | Sets a quantity (1–10; 0 removes). |
+| `DELETE /api/cart/items/:slug` | Removes a product. |
+| `POST /api/cart/checkout` | Prices the cart **on the server**, empties it, returns `{ checkoutId, customer, items }`. `409` if empty. |
+
+- **Identity of the cart:** a random UUID in the `micro-shop-cart` cookie: `HttpOnly` (no page
+  script can read it), `SameSite=Lax`, `Path=/api/cart` (sent to this API only).
+- **Prices** come from the storefront's `/catalog.json`, fetched server to server and cached for
+  30 s. The browser never sends a price.
+- **Its types** are in [api-types.ts](../apps/cart-api/src/api-types.ts), shared with `apps/cart`
+  only, because the same team owns both. Only the storefront's "Add to cart" form is cross-team,
+  so only that is in contracts (`AddToCartEndpoint`, `AddToCartFields`).
+- **Storage: Neon Postgres, through Drizzle.** Tables live in the service's own `cart` schema
+  ([src/db/schema.ts](../apps/cart-api/src/db/schema.ts)): `carts` and `cart_lines`, with the
+  API's limits enforced by the database too. Every change is atomic: adding to a line is one
+  upsert, and checkout locks the cart, so two tabs or a double click can't lose an update or
+  check out twice. Without `DATABASE_URL` the API falls back to an in-memory store (and says so).
+- **Known limit, on purpose:** the customer at checkout is taken from the request because
+  there's no identity provider yet. That's the next stage, along with moving the Cart → Orders
+  hand-off to the server.
+
+#### Working with the database
+
+| Command (in `apps/cart-api`, or `pnpm db:migrate` from the root for every service) | Does |
+| --- | --- |
+| `pnpm db:generate` | After editing `src/db/schema.ts`: writes a new SQL migration to `drizzle/`. Review it and commit it. |
+| `pnpm db:migrate` | Applies pending migrations to `DATABASE_URL`. History: `cart.__drizzle_migrations`. |
+| `pnpm db:studio` | Drizzle Studio, a browser UI for the tables. |
+
+Setup: copy [.env.example](../apps/cart-api/.env.example) to `apps/cart-api/.env` (git-ignored)
+with a connection string from the Neon console (project **mciro-shop**). **Develop against the
+`dev` branch, never `production`**: a Neon branch is a full copy of the database, created in a
+second, so every developer or feature can have their own. Run `pnpm db:migrate` once, then
+`pnpm dev`. Tests for the Postgres store run when `DATABASE_URL` is set
+([cart-store.contract.test.ts](../apps/cart-api/src/cart-store.contract.test.ts)); they clean
+up after themselves.
 
 ### Storefront (`apps/storefront`)
 
@@ -163,9 +212,9 @@ It is not a federation host or remote.
   logic is `searchProducts()` in [lib/catalog.ts](../apps/storefront/lib/catalog.ts): every word
   must appear in the name, category, summary or description.
 - `/catalog.json` is the catalog's public **read API** (slug, name, price), typed by
-  `CatalogResponse` in contracts and generated at build time. The Cart uses it for prices.
-- Product pages link **Add to cart** to `/cart/add?product=<slug>`: a plain link into the shell's
-  zone, so it needs no JavaScript.
+  `CatalogResponse` in contracts and generated at build time. The Cart API uses it for prices.
+- Product pages have an **Add to cart** button: a plain HTML form that POSTs to the Cart API
+  (`/api/cart/items`), so it needs no JavaScript and lands on `/cart`.
 - The only client-side code is [account-status.tsx](../apps/storefront/components/account-status.tsx),
   which reads Auth's display-name cookie.
 - Links into `/orders` and `/shipping` are plain `<a href>`: they cross into the other zone, so
@@ -181,8 +230,9 @@ that code: it loads `remoteEntry.js` / `mf-manifest.json` and only the exposed m
 
 ## The shared packages
 
-All four live in [packages/](../packages/) and are consumed as TypeScript source through
-workspace dependencies. They are **build-time** dependencies: each app bundles its own copy.
+They all live in [packages/](../packages/) and are consumed as TypeScript source through
+workspace dependencies. They are **build-time** dependencies: each app bundles (or, for a
+service, imports) its own copy.
 
 | Package | Runtime code? | Shared state | Used by |
 | --- | --- | --- | --- |
@@ -190,6 +240,11 @@ workspace dependencies. They are **build-time** dependencies: each app bundles i
 | `event-bus` | Yes | `window.__microShopEventLog__` | auth, orders, shipping, cart (publish/subscribe), shell (log panel) |
 | `observability` | Yes | `window.__microShopLogSinks__` | shell, auth, orders, shipping, cart |
 | `ui` | Yes (React components, CSS) | none | every app, including the storefront |
+| `service-kit` | Yes (Node) | none | every backend service (`apps/*-api`) |
+
+**The rule for all of them:** share *how* things are done, never *what* a team does. Logging,
+UI components, a server setup: shared. Orders' rules, the cart's pricing, anything a team
+changes for its own feature: in that team's app, so it ships without touching anyone else.
 
 ### `@micro-shop/contracts`
 
@@ -444,6 +499,32 @@ Import paths: `@micro-shop/ui/components/<name>`, `@micro-shop/ui/lib/utils`,
 See [shared-packages.md](shared-packages.md) for how Tailwind and tokens are split between the
 shell and remotes.
 
+### `@micro-shop/service-kit`
+
+**What it is:** the platform every backend service is built on, so that the second, third and
+tenth API don't each re-write the same Fastify setup. Source:
+[packages/service-kit/src/](../packages/service-kit/src/). It owns the one Fastify dependency,
+so the whole backend upgrades Fastify in one place.
+
+| Export | Gives every service |
+| --- | --- |
+| `createService({ name })` | A configured Fastify: JSON logs tagged with the service name (and no per-request noise), `GET /health`, one error shape `{ error, message }` (400 invalid input, 404 unknown route, 500 with details logged but never sent), and HTML form posts parsed like JSON |
+| `startService(app, { port })`, `portFromEnv()` | Listen (127.0.0.1, or `HOST`), and close cleanly on Ctrl+C / SIGTERM |
+| `sendError(reply, status, code, message)`, `ErrorBody<Code>` | The error shape, with each service's own codes |
+| `readCookie()`, `serializeCookie()` | Cookies with safe defaults: `HttpOnly`, `SameSite=Lax`, `Secure` when `COOKIE_SECURE=true` |
+| `fetchJson(url, { timeoutMs })`, `UpstreamUnavailableError` | Calls to other services with a timeout; every failure becomes one error type to degrade on |
+| `isFormPost(request)` | Tells a plain HTML form apart from a `fetch` (answer with a redirect vs JSON) |
+| `createDatabasePool(url)`, `databaseHealthCheck(pool)` | A Postgres pool tuned for Neon (small, patient with a waking compute, survives dropped idle connections), and a `/health` check for it. Each service still owns its tables through its own Drizzle schema and migrations |
+| Fastify types | `FastifyInstance`, `FastifyRequest`, `FastifyReply`, re-exported |
+
+**What it must never contain:** routes, domain types, a list of services, or anything one team
+would need to change for its own feature. `cart-api`'s cart store, pricing and endpoints stay in
+`apps/cart-api`. If a change to the kit is needed for one team's feature, it probably belongs in
+that team's service instead.
+
+Services share one TypeScript setup too: [tsconfig.service.json](../tsconfig.service.json) at
+the root (Node runs the `.ts` files directly, so imports name the real `.ts` file).
+
 ---
 
 ## How it all works together
@@ -507,28 +588,33 @@ and the **transport** (`window`).
 ```mermaid
 sequenceDiagram
     participant SF as Storefront
+    participant API as Cart API
     participant C as Cart
     participant Sh as Shell
     participant A as Auth
     participant O as Orders
     participant S as Shipping
 
-    SF->>C: link /cart/add?product=monitor-arm (full page load)
-    C->>C: add slug to cart (localStorage) → replace URL with /cart
-    C->>SF: GET /catalog.json (names, prices)
+    SF->>API: form POST /api/cart/items { productSlug }
+    API-->>SF: 303 → /cart (+ HttpOnly cart cookie)
+    C->>API: GET /api/cart
+    API->>SF: GET /catalog.json (server to server, prices)
+    API-->>C: priced cart
     C->>Sh: link /checkout
     Sh->>A: session? none → Auth's LoginForm
     A-->>Sh: signed in
     Sh->>C: render cart/Checkout with props { customer: { id, name } }
+    C->>API: POST /api/cart/checkout { customer }
+    API-->>C: { checkoutId, customer, items } (priced, cart emptied)
     C->>O: publish checkout.completed { checkoutId, customer, items }
     C->>Sh: navigate /orders/checkout/:checkoutId (loads Orders)
     Note over O: replay: creates the order (one per checkoutId),<br/>publishes order.created, redirects to /orders/:id
     Note over S: next time Shipping loads, replay creates the shipment
 ```
 
-Four apps take part and none imports another. The hand-offs are a URL (storefront → cart), a
-typed prop (shell → checkout), an event (cart → orders → shipping) and a read API (cart →
-catalog).
+Four apps and an API take part, and none imports another. The hand-offs are a form POST
+(storefront → Cart API), a typed prop (shell → checkout), an event (cart → orders → shipping)
+and a read API (Cart API → catalog).
 
 ### When something breaks
 
@@ -538,7 +624,8 @@ catalog).
 | A remote throws while rendering (`?break=orders`) | Same fallback, only in that area | `[shell] remote "orders" failed; showing fallback` with component stack |
 | Auth is down on a protected page | Protected page is **not** rendered (fail closed) | same as above, for `auth` |
 | Registry missing | Shell renders; every remote shows its fallback | `[shell] remote registry unavailable` |
-| The catalog API is down | Cart keeps the cart and shows "prices unavailable" + Retry; checkout waits | `[cart] catalog unavailable (/catalog.json)` |
+| The catalog is down | The Cart API serves the cart unpriced; Cart shows "prices unavailable" + Retry; checkout waits | cart-api: `catalog unavailable; serving the cart unpriced` |
+| The Cart API is down | The cart page shows "can't be loaded" + Retry; the rest of the page works | `[cart] cart request failed: GET /api/cart` |
 
 Try these yourself with the links on the shell's home page (`http://localhost:3000/`).
 
@@ -551,7 +638,7 @@ production infrastructure:
 
 | Path | Role |
 | --- | --- |
-| [gateway/server.mjs](../infra/gateway/server.mjs) | Reverse proxy on :8080. Sends `/`, `/products/*`, `/search`, `/_next/*`, `sitemap.xml` and `robots.txt` to the storefront, and everything else to the shell. Forwards WebSockets for hot reload. In prod mode, `/mfe-registry.json` goes to the CDN. |
+| [gateway/server.mjs](../infra/gateway/server.mjs) | Reverse proxy on :8080. Sends `/`, `/products/*`, `/search`, `/catalog.json`, `/_next/*`, `sitemap.xml` and `robots.txt` to the storefront, `/api/cart/*` to the Cart API, and everything else to the shell. Runs with `node --watch` in dev, so route changes apply on save. Forwards WebSockets for hot reload. In prod mode, `/mfe-registry.json` goes to the CDN. |
 | [static/serve.mjs](../infra/static/serve.mjs) | Static server used as the CDN (`--cors`) and as the shell host (`--spa`). `mf-manifest.json`, `mfe-registry.json` and HTML get `no-cache`; everything else is cached as immutable. |
 | [deploy/release.mjs](../infra/deploy/release.mjs) | Mock release pipeline. **Upload** copies `apps/<app>/dist` to `infra/cdn/public/<app>/<version>/` (never overwritten), then **promote** updates `mfe-registry.json`. Rollback only re-points the registry. |
 | [cdn/public/](../infra/cdn/public/) | The mock CDN's contents, generated by `release.mjs`. Don't edit by hand. |
@@ -584,9 +671,12 @@ What the unit tests cover:
   filled only from events; snapshot identity is stable.
 - **shipping store**: reacts to `order.created`, is idempotent, never reuses ids, and catches up
   via replay ([shipping-store.replay.test.ts](../apps/shipping/src/shipping-store.replay.test.ts)).
-- **cart**: the store merges, caps and validates lines and survives a reload; checkout publishes
-  `checkout.completed` with only the contract's customer fields, then empties the cart, and
-  refuses empty carts or unavailable products.
+- **cart API** ([app.test.ts](../apps/cart-api/src/app.test.ts), in-process with
+  `app.inject()`): cookie-keyed carts, the HTML form's 303, validation, merge/cap/update/remove,
+  server-side prices at checkout, customer fields stripped, degrading when the catalog is down.
+- **cart client**: one shared load, changes sent as API calls, a slow older answer never
+  overwrites a newer one, the last confirmed cart is kept when a change fails; checkout
+  announces exactly what the server priced, and nothing when the server refuses.
 - **orders from checkout**: loaded late, Orders replays `checkout.completed` and creates exactly
   one order per checkout
   ([orders-store.checkout.test.ts](../apps/orders/src/orders-store.checkout.test.ts)).
@@ -662,6 +752,25 @@ shared singletons (`react`, `react-dom`, `react-router`); an `index.ts` async bo
 standalone `bootstrap.tsx`. Then add it to the `AppName` union in contracts, to both
 registries (dev `apps/shell/public/mfe-registry.json` and `REMOTES` in `release.mjs`), to
 `remotes.d.ts` / `load-remote.ts`, and a route in the shell's `App.tsx`.
+
+### Add a new backend service (e.g. `orders-api`)
+
+A new service is only its own code, on top of the kit:
+
+1. `apps/orders-api/package.json`: copy `apps/cart-api`'s (the `dev`/`start` scripts run
+   TypeScript directly), depend on `@micro-shop/service-kit`, **not** on `fastify`.
+2. `tsconfig.json`: `{ "extends": "../../tsconfig.service.json", "include": ["src"] }`.
+3. `src/app.ts`: `const app = createService({ name: 'orders-api' })`, then the team's routes under
+   `/api/orders/...`. Answer errors with `sendError`. Export it as `buildApp()` so tests can
+   `app.inject()` without a port.
+4. `src/server.ts`: `await startService(buildApp(...), { port: portFromEnv('ORDERS_API_PORT', 4002) })`.
+   If it stores data: a Drizzle schema in its own Postgres schema (`pgSchema('orders')`), a
+   `drizzle.config.ts` with `schemaFilter: ['orders']` and its migration history in that schema,
+   `createDatabasePool` from the kit, and the `db:*` scripts. Copy them from `apps/cart-api`.
+5. Route `/api/orders/*` to it in [infra/gateway/server.mjs](../infra/gateway/server.mjs) and add
+   it to [infra/prod/start.mjs](../infra/prod/start.mjs); add `dev:orders-api` to the root scripts.
+6. Request/response types go in the service's own `src/api-types.ts` if only its own frontend
+   uses them, in `@micro-shop/contracts` if another team calls it.
 
 ---
 
