@@ -1,4 +1,4 @@
-import { createDatabasePool } from '@micro-shop/service-kit';
+import { createDatabasePool, logRetry, waitForDatabase } from '@micro-shop/service-kit';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { seedCategories, seedProducts } from '../lib/catalog-data.ts';
@@ -15,6 +15,7 @@ const pool = createDatabasePool(url, { max: 1 });
 const db = drizzle(pool);
 
 try {
+  await waitForDatabase(pool, { onRetry: logRetry('storefront seed') });
   await db.transaction(async (tx) => {
     await tx
       .insert(categories)

@@ -16,6 +16,8 @@ export type AuthStore = {
   findUserByEmail(email: string): Promise<StoredUser | undefined>;
   /** Creates or updates a user (seeding). */
   upsertUser(user: StoredUser): Promise<void>;
+  /** Creates a new user (sign-up). False when the email is already taken. */
+  createUser(user: StoredUser): Promise<boolean>;
   /** Stores a new session, and forgets that user's expired ones. */
   createSession(tokenHash: string, userId: string, expiresAt: Date): Promise<void>;
   /** The user behind a session that exists and hasn't expired. */
@@ -34,6 +36,12 @@ export function createMemoryAuthStore(): AuthStore {
 
     async upsertUser(user) {
       users.set(user.id, user);
+    },
+
+    async createUser(user) {
+      if (users.has(user.id) || [...users.values()].some(({ email }) => email === user.email)) return false;
+      users.set(user.id, user);
+      return true;
     },
 
     async createSession(tokenHash, userId, expiresAt) {

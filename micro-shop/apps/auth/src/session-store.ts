@@ -6,7 +6,7 @@
 // sees the token or the password hash; it asks the API and remembers the answer.
 // Other applications see only the read-only facade in ./session.ts.
 
-import type { LoginBody, SessionResponse } from '@micro-shop/auth-api/api-types';
+import type { LoginBody, RegisterBody, SessionResponse } from '@micro-shop/auth-api/api-types';
 import type { Session } from '@micro-shop/contracts';
 import { createPublisher } from '@micro-shop/event-bus';
 import { createLogger, errorData } from '@micro-shop/observability';
@@ -75,12 +75,12 @@ export class InvalidCredentialsError extends Error {
   override name = 'InvalidCredentialsError';
 }
 
-export async function login(email: string, password: string): Promise<Session> {
-  const body: LoginBody = { email, password };
-  const response = await request('POST', '/login', body);
-  if (response.status === 401) throw new InvalidCredentialsError('Invalid email or password');
-  if (!response.ok) throw new Error(`Sign-in failed (HTTP ${response.status})`);
+export class EmailTakenError extends Error {
+  override name = 'EmailTakenError';
+}
 
+/** Signed in from a login or register response: remember the session, tell the other apps. */
+async function signedIn(response: Response): Promise<Session> {
   const { session } = (await response.json()) as SessionResponse;
   if (!session) throw new Error('Sign-in failed: no session returned');
   setSession(session);
@@ -88,6 +88,23 @@ export async function login(email: string, password: string): Promise<Session> {
   // Identity facts other apps may react to (e.g. clear per-user caches on logout).
   publish('auth.user.logged-in', { version: 1, userId: session.user.id });
   return session;
+}
+
+export async function login(email: string, password: string): Promise<Session> {
+  const body: LoginBody = { email, password };
+  const response = await request('POST', '/login', body);
+  if (response.status === 401) throw new InvalidCredentialsError('Invalid email or password');
+  if (!response.ok) throw new Error(`Sign-in failed (HTTP ${response.status})`);
+  return signedIn(response);
+}
+
+/** Creates an account and signs it in. The form checks the fields first; the API checks them again. */
+export async function register(name: string, email: string, password: string): Promise<Session> {
+  const body: RegisterBody = { name, email, password };
+  const response = await request('POST', '/register', body);
+  if (response.status === 409) throw new EmailTakenError('An account with this email already exists');
+  if (!response.ok) throw new Error(`Sign-up failed (HTTP ${response.status})`);
+  return signedIn(response);
 }
 
 export function logout(): void {

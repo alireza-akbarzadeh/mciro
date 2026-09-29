@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { Session } from '@micro-shop/contracts';
 import {
   createService,
@@ -14,6 +14,8 @@ import {
   type ApiErrorCode,
   DISPLAY_NAME_COOKIE,
   type LoginBody,
+  MIN_PASSWORD_LENGTH,
+  type RegisterBody,
   SESSION_COOKIE,
   type SessionResponse,
 } from './api-types.ts';
@@ -25,6 +27,7 @@ import { hashPassword, verifyPassword } from './passwords.ts';
 //   GET  /api/auth/session   who is signed in: { session } or { session: null }
 //                            (also asked server to server, e.g. by the Cart API)
 //   POST /api/auth/login     { email, password } → sets the session cookie
+//   POST /api/auth/register  { name, email, password } → creates the user, signs them in
 //   POST /api/auth/logout    ends the session, clears the cookies
 //
 // The browser holds a random session token in an HttpOnly cookie; the database
@@ -73,8 +76,17 @@ export function buildApp({ store, sessionTtlMs = DEFAULT_TTL_MS, logger = false,
     ]);
   }
 
+  /** Signs `user` in: a new session in the store, its token in the cookie. */
+  async function startSession(reply: FastifyReply, user: StoredUser): Promise<SessionResponse> {
+    const token = randomBytes(32).toString('base64url');
+    const expiresAt = new Date(Date.now() + sessionTtlMs);
+    await store.createSession(hashToken(token), user.id, expiresAt);
+    setSessionCookies(reply, token, user);
+    return { session: toSession(user, expiresAt) };
+  }
+
   /**
-   * Login and logout only accept JSON, sent by fetch. A plain HTML form on
+   * Login, register and logout only accept JSON, sent by fetch. A plain HTML form on
    * another site could otherwise sign a visitor in or out (login CSRF).
    */
   function requireJson(request: FastifyRequest, reply: FastifyReply) {
@@ -117,14 +129,46 @@ export function buildApp({ store, sessionTtlMs = DEFAULT_TTL_MS, logger = false,
         return fail(reply, 401, 'invalid_credentials', 'Invalid email or password');
       }
 
-      const token = randomBytes(32).toString('base64url');
-      const expiresAt = new Date(Date.now() + sessionTtlMs);
-      await store.createSession(hashToken(token), user.id, expiresAt);
-      setSessionCookies(reply, token, user);
+      const body = await startSession(reply, user);
       request.log.info({ userId: user.id }, 'signed in');
-
-      const body: SessionResponse = { session: toSession(user, expiresAt) };
       return body;
+    },
+  );
+
+  app.post<{ Body: RegisterBody }>(
+    '/api/auth/register',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['name', 'email', 'password'],
+          properties: {
+            name: { type: 'string', maxLength: 100, pattern: '\\S' },
+            // Deliberately loose: only a confirmation email could prove the address works.
+            email: { type: 'string', maxLength: 200, pattern: '^\\s*[^\\s@]+@[^\\s@]+\\.[^\\s@]+\\s*$' },
+            password: { type: 'string', minLength: MIN_PASSWORD_LENGTH, maxLength: 200 },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const refused = requireJson(request, reply);
+      if (refused) return refused;
+
+      const user: StoredUser = {
+        // Random, so an id reveals nothing (not even how many users there are).
+        id: `u-${randomUUID()}`,
+        name: request.body.name.trim(),
+        email: request.body.email.trim().toLowerCase(),
+        passwordHash: await hashPassword(request.body.password),
+      };
+      if (!(await store.createUser(user))) {
+        return fail(reply, 409, 'email_taken', 'An account with this email already exists');
+      }
+
+      const body = await startSession(reply, user);
+      request.log.info({ userId: user.id }, 'registered');
+      return reply.code(201).send(body);
     },
   );
 

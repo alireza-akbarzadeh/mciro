@@ -489,11 +489,11 @@ Each has a checklist in the
     "Add to cart" as a plain form POST, the first backend-for-frontend behind the gateway
 12. ✅ `service-kit` for every backend service, and Neon Postgres through Drizzle: a schema per
     service, generated migrations, atomic cart updates, a Neon branch for development
-13. ✅ Auth API: real sign-in (scrypt), server-side sessions in an HttpOnly cookie, and the
-    Cart API checks the session at checkout instead of trusting the browser
+13. ✅ Auth API: sign-up and real sign-in (scrypt), server-side sessions in an HttpOnly cookie,
+    and the Cart API checks the session at checkout instead of trusting the browser
 14. ✅ Catalog in Postgres with seed data: 20 products, category pages, "Add to cart" on every
     card; shadcn dropdown-menu, avatar, breadcrumb and sonner toasts
 
-Next: move the Cart → Orders hand-off to the server (an `orders-api`), and a real identity
-provider so the APIs can verify who the customer is. More ideas are in the
+Next: move the Cart → Orders hand-off to the server (an `orders-api`, which checks the session
+through the Auth API as the Cart API does), so orders live in Postgres too. More ideas are in the
 [roadmap](docs/GUIDE.md#roadmap).

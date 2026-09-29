@@ -13,8 +13,11 @@ export { readCookie, serializeCookie, type CookieOptions } from './cookies.ts';
 export {
   createDatabasePool,
   databaseHealthCheck,
+  logRetry,
+  waitForDatabase,
   type DatabasePool,
   type DatabasePoolOptions,
+  type WaitOptions,
 } from './database.ts';
 export { sendError, type ErrorBody } from './errors.ts';
 export { runMigrations, type MigrationOptions } from './migrations.ts';

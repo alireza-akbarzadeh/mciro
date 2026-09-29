@@ -37,6 +37,31 @@ test('the account menu shows who you are and signs you out, on the server too', 
   await expect(page.getByLabel('Password')).toBeVisible();
 });
 
+test('a visitor creates an account and is signed in with it', async ({ page }) => {
+  const email = `e2e-${Date.now()}@example.com`;
+  await page.goto('/orders');
+  await page.getByRole('button', { name: 'Create one' }).click();
+
+  await page.getByLabel('Full name').fill('Katherine Johnson');
+  await page.getByLabel('Email address').fill(email);
+  await page.getByLabel('Password').fill('orbital-mechanics');
+  await page.getByRole('button', { name: 'Create account' }).click();
+
+  await expect(page.getByRole('banner')).toContainText('Katherine Johnson');
+  await expect(page.getByLabel('Password')).toHaveCount(0);
+
+  // The same email can't be taken twice.
+  await page.getByRole('button', { name: 'Account menu for Katherine Johnson' }).click();
+  await page.getByRole('menuitem', { name: 'Sign out' }).click();
+  await page.goto('/orders');
+  await page.getByRole('button', { name: 'Create one' }).click();
+  await page.getByLabel('Full name').fill('Someone Else');
+  await page.getByLabel('Email address').fill(email);
+  await page.getByLabel('Password').fill('another-password');
+  await page.getByRole('button', { name: 'Create account' }).click();
+  await expect(page.getByText('An account with this email already exists')).toBeVisible();
+});
+
 test('the session survives a reload: it lives on the server, not in the page', async ({ page }) => {
   await signIn(page);
   await page.reload();

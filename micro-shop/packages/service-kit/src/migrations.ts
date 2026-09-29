@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import { createDatabasePool } from './database.ts';
+import { createDatabasePool, logRetry, waitForDatabase } from './database.ts';
 
 // `pnpm db:migrate` for every service: applies the SQL migrations a service's
 // drizzle-kit generated, that this database hasn't seen yet, in order.
@@ -22,6 +22,7 @@ export async function runMigrations({ schema, folder, url = process.env.DATABASE
   if (!url) throw new Error('DATABASE_URL is not set (see the service’s .env.example)');
   const pool = createDatabasePool(url, { max: 1 });
   try {
+    await waitForDatabase(pool, { onRetry: logRetry(`${schema} migrate`) });
     await migrate(drizzle(pool), {
       migrationsFolder: folder,
       migrationsSchema: schema,

@@ -120,6 +120,7 @@ The Auth team's backend on :4001, behind the gateway at `/api/auth/*`, built on
 | --- | --- |
 | `GET /api/auth/session` | `{ session }` or `{ session: null }`. **Cross-team** (`SessionEndpoint` in contracts): other services forward the browser's Cookie header here to learn who a request comes from. |
 | `POST /api/auth/login` | `{ email, password }` → sets the session cookie. 401 for a wrong password or an unknown email, alike. |
+| `POST /api/auth/register` | `{ name, email, password }` → creates the user and signs them in (201, same body as login). 409 `email_taken` if the email has an account; 400 for a blank name, a malformed email or a password under 8 characters (`MIN_PASSWORD_LENGTH`). |
 | `POST /api/auth/logout` | Deletes the session on the server and clears the cookies. |
 
 - **Passwords** are stored as salted **scrypt** hashes (Node's built-in crypto), checked in
@@ -129,12 +130,16 @@ The Auth team's backend on :4001, behind the gateway at `/api/auth/*`, built on
   `SameSite=Lax`, `Path=/`, 8 hours). The database stores only its SHA-256, so a leaked
   `sessions` table can't be used to sign in. Logout deletes the row, so a copied cookie stops
   working at once.
-- **Login CSRF**: login and logout accept JSON only, so another site's plain form can't sign a
-  visitor in or out.
+- **Login CSRF**: login, register and logout accept JSON only, so another site's plain form
+  can't sign a visitor in or out.
+- **Sign-up**: new users get a random id (`u-<uuid>`). The unique index on `email` decides
+  who wins when two sign-ups race for one address. The Auth form (`LoginForm`) switches
+  between "Sign in" and "Create account" itself, so hosts render one remote for both.
 - A second, non-HttpOnly cookie (`micro-shop-user`) holds only the display name, for the
   storefront's "Signed in as Ada".
 - Tables in its own `auth` schema: `users`, `sessions`. `pnpm db:seed` creates the demo users.
-- **Not done yet, on purpose:** sign-up, password reset, rate limiting of login attempts.
+- **Not done yet, on purpose:** email verification, password reset, rate limiting of login
+  and sign-up attempts.
 
 ### Orders (`apps/orders`)
 
@@ -561,6 +566,7 @@ so the whole backend upgrades Fastify in one place.
 | `isFormPost(request)` | Tells a plain HTML form apart from a `fetch` (answer with a redirect vs JSON) |
 | `runMigrations({ schema, folder })` | `pnpm db:migrate` for any service: applies its Drizzle migrations, keeping the history in its own schema |
 | `createDatabasePool(url)`, `databaseHealthCheck(pool)` | A Postgres pool tuned for Neon (small, patient with a waking compute, survives dropped idle connections), and a `/health` check for it. Each service still owns its tables through its own Drizzle schema and migrations |
+| `waitForDatabase(pool, { onRetry })`, `logRetry(label)` | Retries `select 1` with backoff (4 attempts) until the database answers. A suspended Neon compute sometimes drops the first connection; `runMigrations` and the seed scripts call this first, so a cold start doesn't fail them |
 | Fastify types | `FastifyInstance`, `FastifyRequest`, `FastifyReply`, re-exported |
 
 **What it must never contain:** routes, domain types, a list of services, or anything one team

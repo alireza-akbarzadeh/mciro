@@ -29,6 +29,42 @@ export function createDatabasePool(
   return pool;
 }
 
+export type WaitOptions = {
+  attempts?: number;
+  /** Delay before the 2nd attempt; doubles after each failure. */
+  delayMs?: number;
+  onRetry?: (attempt: number, error: unknown) => void;
+};
+
+/**
+ * Resolves once the database answers a query. A suspended Neon compute
+ * sometimes drops the first connection while it wakes up, so scripts
+ * (migrate, seed) call this first instead of failing on a cold start.
+ */
+export async function waitForDatabase(
+  pool: DatabasePool,
+  { attempts = 4, delayMs = 1_000, onRetry }: WaitOptions = {},
+): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await pool.query('select 1');
+      return;
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+      onRetry?.(attempt, error);
+      await new Promise((resolve) => setTimeout(resolve, delayMs * 2 ** (attempt - 1)));
+    }
+  }
+}
+
+/** Logs retries of waitForDatabase from a command-line script. */
+export function logRetry(label: string): WaitOptions['onRetry'] {
+  return (attempt, error) =>
+    console.warn(
+      `[${label}] database not reachable yet (attempt ${attempt}: ${error instanceof Error ? error.message : String(error)}); retrying…`,
+    );
+}
+
 /** A health check for createService({ healthChecks }): can we run a query? */
 export function databaseHealthCheck(pool: DatabasePool): () => Promise<void> {
   return async () => {

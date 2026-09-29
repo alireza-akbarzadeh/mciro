@@ -110,6 +110,46 @@ describe('auth API', () => {
     expect((await b.call('GET', '/api/auth/session')).json<SessionResponse>().session).toBeNull();
   });
 
+  it('registers a new user, signs them in, and lets them sign in again later', async () => {
+    const b = browser();
+    const response = await b.call('POST', '/api/auth/register', {
+      name: '  Katherine Johnson ',
+      email: ' Katherine@Example.com',
+      password: 'orbital-mechanics',
+    });
+
+    expect(response.statusCode).toBe(201);
+    const user = response.json<SessionResponse>().session?.user;
+    expect(user).toMatchObject({ name: 'Katherine Johnson', email: 'katherine@example.com' });
+    expect(user?.id).toMatch(/^u-[0-9a-f-]{36}$/);
+    expect((await b.call('GET', '/api/auth/session')).json<SessionResponse>().session?.user.id).toBe(user?.id);
+
+    const again = await signIn(browser(), 'katherine@example.com', 'orbital-mechanics');
+    expect(again.statusCode).toBe(200);
+  });
+
+  it('refuses a second account for the same email, and leaves the first one alone', async () => {
+    const taken = await browser().call('POST', '/api/auth/register', {
+      name: 'Not Ada',
+      email: 'ADA@example.com',
+      password: 'a-new-password',
+    });
+    expect(taken.statusCode).toBe(409);
+    expect(taken.json()).toMatchObject({ error: 'email_taken' });
+    expect(taken.headers['set-cookie']).toBeUndefined();
+    expect((await signIn(browser())).statusCode).toBe(200);
+  });
+
+  it.each([
+    ['a short password', { name: 'Short', email: 'short@example.com', password: '1234567' }],
+    ['a blank name', { name: '   ', email: 'blank@example.com', password: 'long-enough' }],
+    ['a malformed email', { name: 'Typo', email: 'typo.example.com', password: 'long-enough' }],
+  ])('refuses %s', async (_case, body) => {
+    const response = await browser().call('POST', '/api/auth/register', body);
+    expect(response.statusCode).toBe(400);
+    expect(await store.findUserByEmail(body.email)).toBeUndefined();
+  });
+
   it('only accepts JSON for login, so another site’s form can’t sign you in', async () => {
     // What a malicious page's auto-submitting form would send: valid credentials, as a form.
     const response = await browser().call('POST', '/api/auth/login', 'email=ada@example.com&password=demo', {

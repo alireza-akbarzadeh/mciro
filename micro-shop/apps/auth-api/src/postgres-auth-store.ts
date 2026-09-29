@@ -29,6 +29,13 @@ export function createPostgresAuthStore(db: NodePgDatabase): AuthStore {
         });
     },
 
+    async createUser(user) {
+      // The unique index on email decides, so two sign-ups racing for the
+      // same email can't both win.
+      const created = await db.insert(users).values(user).onConflictDoNothing().returning({ id: users.id });
+      return created.length > 0;
+    },
+
     async createSession(tokenHash, userId, expiresAt) {
       await db.transaction(async (tx) => {
         await tx

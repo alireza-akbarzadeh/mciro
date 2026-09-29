@@ -7,6 +7,8 @@ import {
   readCookie,
   serializeCookie,
   UpstreamUnavailableError,
+  waitForDatabase,
+  type DatabasePool,
 } from './index.ts';
 
 // What every service gets for free. If one of these changes, every service's
@@ -103,5 +105,34 @@ describe('fetchJson', () => {
     await expect(fetchJson('http://127.0.0.1:9/catalog.json', { timeoutMs: 500 })).rejects.toThrow(
       UpstreamUnavailableError,
     );
+  });
+});
+
+describe('waitForDatabase', () => {
+  /** A pool whose first `failures` queries fail, like a Neon compute waking up. */
+  function flakyPool(failures: number) {
+    let calls = 0;
+    const pool = {
+      async query() {
+        calls++;
+        if (calls <= failures) throw new Error('Connection terminated due to connection timeout');
+        return { rows: [] };
+      },
+    } as unknown as DatabasePool;
+    return { pool, calls: () => calls };
+  }
+
+  it('retries a cold start until the database answers', async () => {
+    const { pool, calls } = flakyPool(2);
+    const retries: number[] = [];
+    await waitForDatabase(pool, { delayMs: 1, onRetry: (attempt) => retries.push(attempt) });
+    expect(calls()).toBe(3);
+    expect(retries).toEqual([1, 2]);
+  });
+
+  it('gives up after the last attempt, with the real error', async () => {
+    const { pool, calls } = flakyPool(10);
+    await expect(waitForDatabase(pool, { attempts: 3, delayMs: 1 })).rejects.toThrow('connection timeout');
+    expect(calls()).toBe(3);
   });
 });

@@ -1,8 +1,7 @@
-import { Suspense, useState, version as reactVersion, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, Route, Routes } from 'react-router';
+import { Suspense, useState, type ReactNode } from 'react';
+import { Link, Route, Routes } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
-import { Alert, AlertDescription } from '@micro-shop/ui/components/alert';
-import { Button, buttonVariants } from '@micro-shop/ui/components/button';
+import { Button } from '@micro-shop/ui/components/button';
 import {
   Card,
   CardContent,
@@ -10,10 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@micro-shop/ui/components/card';
-import { Input } from '@micro-shop/ui/components/input';
-import { MfeLabel } from '@micro-shop/ui/components/mfe-frame';
 import { Skeleton } from '@micro-shop/ui/components/skeleton';
-import { EventLog } from './EventLog';
 import { loadRemoteModule } from './load-remote';
 import { Remote, RemoteBoundary } from './remote';
 import { resetSessionApi, useSession } from './use-session';
@@ -31,6 +27,7 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+
         <Route
           path="orders/*"
           element={
@@ -39,6 +36,7 @@ export function App() {
             </RequireSession>
           }
         />
+
         <Route
           path="shipping/*"
           element={
@@ -47,8 +45,13 @@ export function App() {
             </RequireSession>
           }
         />
+
         {/* Guests may fill a cart; the shell asks for sign-in only at checkout. */}
-        <Route path="cart/*" element={<Remote name="cart" load={loadCartApp} />} />
+        <Route
+          path="cart/*"
+          element={<Remote name="cart" load={loadCartApp} />}
+        />
+
         <Route
           path="checkout"
           element={
@@ -57,17 +60,16 @@ export function App() {
             </RequireSession>
           }
         />
+
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
 }
 
-
-
-
 function RequireSession({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
+
   return (
     <RemoteBoundary
       key={attempt}
@@ -87,19 +89,30 @@ function RequireSession({ children }: { children: ReactNode }) {
 
 function SessionGate({ children }: { children: ReactNode }) {
   const session = useSession();
-  if (session) return children;
+
+  if (session) {
+    return children;
+  }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <Alert className="border-blue-200 bg-blue-50/50 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-200">
-        <AlertDescription className="flex items-center gap-3 text-xs leading-relaxed">
-          <MfeLabel label="SHELL" accent="blue" />
-          <span>
-            This view requires sign-in. The shell manages access rights; Auth verifies identity.
-          </span>
-        </AlertDescription>
-      </Alert>
-      <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-xl shadow-slate-100 dark:border-slate-800 dark:shadow-none">
+    <div className="mx-auto flex w-full max-w-[420px] flex-col items-center py-8">
+      <div className="mb-5 w-full rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-foreground text-xs font-bold text-background">
+            A
+          </div>
+
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Sign in required</p>
+
+            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+              Please sign in to continue to this page.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full">
         <Remote name="auth" load={loadLoginForm} />
       </div>
     </div>
@@ -107,90 +120,185 @@ function SessionGate({ children }: { children: ReactNode }) {
 }
 
 /**
- * Composition: the shell is the only app that talks to Auth, so it hands Cart's
- * checkout the signed-in customer (CheckoutProps). Only id and name cross over;
- * the email and the token stay with Auth.
+ * Composition: the shell is the only app that talks to Auth, so it hands
+ * Cart's checkout the signed-in customer (CheckoutProps).
+ *
+ * Only id and name cross over; the email and the token stay with Auth.
  */
 function CheckoutForCustomer() {
   const session = useSession();
-  if (!session) return null; // RequireSession renders this only once signed in.
+
+  if (!session) {
+    return null;
+  }
+
   const { id, name } = session.user;
-  return <Remote name="cart" load={loadCheckout} props={{ customer: { id, name } }} />;
+
+  return (
+    <Remote
+      name="cart"
+      load={loadCheckout}
+      props={{
+        customer: {
+          id,
+          name,
+        },
+      }}
+    />
+  );
 }
 
-const deepLinks: { path: AppPath; owner: string; note: string }[] = [
-  { path: '/orders', owner: 'Orders', note: 'Order history list' },
-  { path: '/orders/1002', owner: 'Orders', note: 'Order details with tracking option' },
-  { path: '/shipping/SHP-2001', owner: 'Shipping', note: 'Detailed tracking timeline' },
-  { path: '/shipping/order/1002', owner: 'Shipping', note: 'Resolves order ID to shipment' },
-  { path: '/shipping/order/1003', owner: 'Shipping', note: 'Pending shipment resolution' },
-  { path: '/cart', owner: 'Cart', note: 'Your cart, open to guests' },
-  { path: '/cart/add?product=standing-desk', owner: 'Cart', note: 'Adds a product, then shows the cart' },
-  { path: '/checkout', owner: 'Cart', note: 'Checkout, behind sign-in' },
+const deepLinks: {
+  path: AppPath;
+  owner: string;
+  note: string;
+}[] = [
+  {
+    path: '/orders',
+    owner: 'Orders',
+    note: 'Order history list',
+  },
+  {
+    path: '/orders/1002',
+    owner: 'Orders',
+    note: 'Order details with tracking option',
+  },
+  {
+    path: '/shipping/SHP-2001',
+    owner: 'Shipping',
+    note: 'Detailed tracking timeline',
+  },
+  {
+    path: '/shipping/order/1002',
+    owner: 'Shipping',
+    note: 'Resolves order ID to shipment',
+  },
+  {
+    path: '/shipping/order/1003',
+    owner: 'Shipping',
+    note: 'Pending shipment resolution',
+  },
+  {
+    path: '/cart',
+    owner: 'Cart',
+    note: 'Your cart, open to guests',
+  },
+  {
+    path: '/cart/add?product=standing-desk',
+    owner: 'Cart',
+    note: 'Adds a product, then shows the cart',
+  },
+  {
+    path: '/checkout',
+    owner: 'Cart',
+    note: 'Checkout, behind sign-in',
+  },
 ];
 
-const breakLinks = ['/orders?break=orders', '/shipping?break=shipping', '/?break=auth'];
+const breakLinks = [
+  '/orders?break=orders',
+  '/shipping?break=shipping',
+  '/?break=auth',
+];
 
 function Home() {
   return (
     <div className="grid gap-6">
-      <Card className="overflow-hidden border-slate-200/80 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800">
-        <div className="h-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-400" />
-        <CardHeader className="space-y-1.5 pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold tracking-tight">
-              Five applications, one seamless interface
-            </CardTitle>
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+      <Card className="overflow-hidden border-border/60 shadow-sm">
+        <div className="h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-400" />
+
+        <CardHeader className="space-y-1.5 pb-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-2xl font-semibold tracking-tight">
+                Microfrontend Workspace
+              </CardTitle>
+
+              <CardDescription className="mt-2">
+                Five independently built applications composed at runtime.
+              </CardDescription>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
               Live Federation
             </span>
           </div>
-          <CardDescription className="text-sm">
-            Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003) · Cart (3005), independently built & orchestrated at runtime.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6 text-sm text-slate-600 dark:text-slate-400">
-          <p className="leading-relaxed">
-            The shell owns routing for top-level URL prefixes. Sub-routes belong to each respective micro-frontend. Every path below represents a deep-linkable entry point:
-          </p>
 
-          <div className="rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/40">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Deep Links</h4>
-            <ul className="grid gap-2.5">
+          <p className="pt-2 text-xs text-muted-foreground">
+            Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003) ·
+            Cart (3005)
+          </p>
+        </CardHeader>
+
+        <CardContent className="grid gap-6">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">
+              Runtime composition
+            </h3>
+
+            <p className="text-sm leading-6 text-muted-foreground">
+              The shell owns top-level routing while each microfrontend owns
+              its respective application area. Every path below represents a
+              deep-linkable entry point.
+            </p>
+          </div>
+
+          {/* Deep Links */}
+          <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
+            <div className="mb-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Deep Links
+              </h4>
+            </div>
+
+            <ul className="grid gap-2">
               {deepLinks.map((link) => (
-                <li key={link.path} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-slate-100 dark:border-slate-800/50 pb-2 last:border-none last:pb-0">
+                <li
+                  key={link.path}
+                  className="flex flex-col gap-2 border-b border-border/50 pb-2 last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+                >
                   <Link
                     to={link.path}
-                    className="font-mono font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400"
+                    className="w-fit font-mono text-xs font-medium text-blue-600 transition-colors hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     {link.path}
                   </Link>
+
                   <div className="flex items-center gap-2">
-                    <span className="rounded bg-slate-200/70 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                       {link.owner}
                     </span>
-                    <span className="text-slate-500">{link.note}</span>
+
+                    <span className="text-xs text-muted-foreground">
+                      {link.note}
+                    </span>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="rounded-xl border border-amber-200/60 bg-amber-50/30 p-4 dark:border-amber-900/30 dark:bg-amber-950/10">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-1">
-              Fault Isolation Testing
-            </h4>
-            <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mb-3">
-              Simulate service failures to verify remote error boundaries:
-            </p>
+          {/* Fault Isolation */}
+          <div className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-4 dark:border-amber-900/40 dark:bg-amber-950/10">
+            <div className="mb-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                Fault Isolation Testing
+              </h4>
+
+              <p className="mt-1 text-xs leading-5 text-amber-700/80 dark:text-amber-300/80">
+                Simulate service failures to verify remote error boundaries.
+              </p>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {breakLinks.map((link) => (
                 <Link
                   key={link}
                   to={link}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-amber-300/50 bg-white px-2.5 py-1 font-mono text-xs text-amber-900 shadow-sm transition-colors hover:bg-amber-100/50 dark:border-amber-800/50 dark:bg-slate-900 dark:text-amber-300"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-amber-300/60 bg-background px-2.5 py-1.5 font-mono text-[11px] text-amber-900 shadow-sm transition-colors hover:bg-amber-100/60 dark:border-amber-800/60 dark:text-amber-300 dark:hover:bg-amber-950/30"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  <span className="size-1.5 rounded-full bg-amber-500" />
                   {link}
                 </Link>
               ))}
@@ -204,16 +312,34 @@ function Home() {
 
 function NotFound() {
   return (
-    <Card className="mx-auto max-w-md border-slate-200 text-center dark:border-slate-800">
+    <Card className="mx-auto max-w-md border-border/60 text-center shadow-sm">
       <CardHeader>
-        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="mx-auto mb-2 grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+          <svg
+            className="size-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
-        <CardTitle className="text-xl">Page Not Found</CardTitle>
-        <CardDescription>No application owns this URL segment.</CardDescription>
+
+        <CardTitle className="text-xl">
+          Page Not Found
+        </CardTitle>
+
+        <CardDescription>
+          No application owns this URL segment.
+        </CardDescription>
       </CardHeader>
+
       <CardContent>
         <Button asChild variant="outline" size="sm">
           <Link to="/">Back to Home</Link>
@@ -225,16 +351,30 @@ function NotFound() {
 
 function RemoteLoading({ remote }: { remote: string }) {
   return (
-    <div role="status" className="grid gap-3.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-900/20">
-      <div className="flex items-center gap-2">
-        <div className="h-2 w-2 animate-ping rounded-full bg-blue-600" />
-        <p className="text-xs font-medium text-slate-500">
-          Loading <code className="rounded bg-slate-200/60 px-1 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{remote}</code> remote…
-        </p>
+    <div
+      role="status"
+      aria-label={`Loading ${remote}`}
+      className="grid gap-4 rounded-xl border border-border/60 bg-card p-6 shadow-sm"
+    >
+      <div className="flex items-center gap-3">
+        <div className="grid size-8 place-items-center rounded-lg bg-muted">
+          <div className="size-3 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+        </div>
+
+        <div className="grid gap-1">
+          <p className="text-sm font-medium">Loading</p>
+
+          <p className="text-xs text-muted-foreground">
+            Connecting to {remote}
+          </p>
+        </div>
       </div>
-      <Skeleton className="h-6 w-1/3 rounded-lg" />
-      <Skeleton className="h-4 w-full rounded-lg" />
-      <Skeleton className="h-4 w-5/6 rounded-lg" />
+
+      <div className="grid gap-2">
+        <Skeleton className="h-4 w-2/5 rounded-md" />
+        <Skeleton className="h-4 w-full rounded-md" />
+        <Skeleton className="h-4 w-4/5 rounded-md" />
+      </div>
     </div>
   );
 }

@@ -7,10 +7,15 @@ import type { SessionResponse } from '@micro-shop/contracts';
 
 export type LoginBody = { email: string; password: string };
 
-/** GET /api/auth/session (a contract: other services call it), and the answer to login and logout. */
+export type RegisterBody = { name: string; email: string; password: string };
+
+/** Shortest password sign-up accepts. The Auth form checks it too, before sending. */
+export const MIN_PASSWORD_LENGTH = 8;
+
+/** GET /api/auth/session (a contract: other services call it), and the answer to login, register and logout. */
 export type { SessionResponse };
 
-export type ApiErrorCode = 'invalid_credentials' | 'json_required';
+export type ApiErrorCode = 'invalid_credentials' | 'json_required' | 'email_taken' | 'bad_request';
 export type ApiError = { error: ApiErrorCode; message: string };
 
 /** HttpOnly: the browser sends it, no page script can read it. */
