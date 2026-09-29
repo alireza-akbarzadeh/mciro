@@ -8,7 +8,11 @@ import { SITE_URL } from '../lib/catalog';
 // and a crawler blocked by robots.txt would never read it.
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: '*', allow: '/', disallow: ['/orders', '/shipping'] },
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: ['/orders', '/shipping', '/cart', '/checkout'],
+    },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

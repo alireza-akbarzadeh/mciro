@@ -25,8 +25,8 @@ import { Skeleton } from '@micro-shop/ui/components/skeleton';
 
 const log = createLogger('shell');
 
-type RemoteModule = { default: ComponentType };
-type Loader = () => Promise<RemoteModule>;
+type RemoteModule<P> = { default: ComponentType<P> };
+type Loader<P> = () => Promise<RemoteModule<P>>;
 
 // One lazy component per loader, kept OUTSIDE React state.
 //
@@ -35,28 +35,36 @@ type Loader = () => Promise<RemoteModule>;
 // uncommitted components lose their memoized values, so every re-render built a
 // new lazy() and fired a new request: 39 manifest requests in a burst. Caching
 // here makes it exactly one request per attempt. Only Retry forgets the entry.
-const lazyRemotes = new Map<Loader, LazyExoticComponent<ComponentType>>();
+// Each entry maps a loader to the lazy component made from it, so the cast on
+// the way out is safe whatever the component's props are.
+const lazyRemotes = new Map<unknown, unknown>();
 
-function getLazyRemote(load: Loader): LazyExoticComponent<ComponentType> {
-  let component = lazyRemotes.get(load);
-  if (!component) {
-    component = lazy(load);
-    lazyRemotes.set(load, component);
-  }
+function getLazyRemote<P extends object>(load: Loader<P>): LazyExoticComponent<ComponentType<P>> {
+  const cached = lazyRemotes.get(load) as LazyExoticComponent<ComponentType<P>> | undefined;
+  if (cached) return cached;
+  const component = lazy(load);
+  lazyRemotes.set(load, component);
   return component;
 }
 
-type RemoteProps = {
+type RemoteProps<P extends object> = {
   /** Remote name, for messages and logs. */
   name: string;
   /** Must be a stable, module-level function: () => loadRemoteModule('orders/OrdersApp'). */
-  load: Loader;
+  load: Loader<P>;
   /** 'page' for a main-area remote, 'inline' for small ones like the header menu. */
   variant?: 'page' | 'inline';
-};
+} & PropsField<P>;
+
+/**
+ * Props for the remote component, typed by its contract (e.g. CheckoutProps).
+ * Required when the remote requires them, so a missing prop is a compile error.
+ * Most remotes take none: every prop is API both teams must keep compatible.
+ */
+type PropsField<P> = {} extends P ? { props?: P } : { props: P };
 
 /** Loads, renders and isolates one remote component. */
-export function Remote({ name, load, variant = 'page' }: RemoteProps) {
+export function Remote<P extends object>({ name, load, variant = 'page', props }: RemoteProps<P>) {
   const [attempt, setAttempt] = useState(0);
   const LazyRemote = getLazyRemote(load);
   const { pathname } = useLocation();
@@ -82,7 +90,7 @@ export function Remote({ name, load, variant = 'page' }: RemoteProps) {
       onRetry={retry}
     >
       <Suspense fallback={<RemoteLoading name={name} variant={variant} />}>
-        <LazyRemote />
+        <LazyRemote {...(props as P)} />
       </Suspense>
     </RemoteBoundary>
   );

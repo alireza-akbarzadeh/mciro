@@ -11,6 +11,8 @@
 //   /search          storefront (catalog search, ?q=<words>)
 //   /orders/*        orders     (via the shell, signed-in)
 //   /shipping/*      shipping   (via the shell, signed-in)
+//   /cart/*          cart       (via the shell, guests welcome)
+//   /checkout        cart       (via the shell, signed-in)
 //
 // Links that cross between the storefront and the shell are different ZONES:
 // use a plain <a href>, a full page load, not client-side navigation.
@@ -22,7 +24,12 @@ export type AppPath =
   /** The query parameter is part of the contract: other apps may link to a search. */
   | `/search?q=${string}`
   | '/orders'
+  /** Includes /orders/checkout/:checkoutId, where Orders resolves a checkout to its order. */
   | `/orders/${string}`
+  | '/cart'
+  /** Adds one of a product and shows the cart. A plain link, so it works from any zone. */
+  | `/cart/add?product=${string}`
+  | '/checkout'
   | '/shipping'
   | `/shipping/${string}`
   /** Shipping resolves the shipment for an order. Orders only knows the order id. */

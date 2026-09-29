@@ -4,7 +4,7 @@
 
 **A small but complete micro-frontend architecture you can run, break, and learn from.**
 
-Five independently built apps, one page. Runtime composition with Module Federation 2.0,
+Six independently built apps, one product. Runtime composition with Module Federation 2.0,
 an SEO zone with Next.js, typed contracts and events, failure isolation, versioned deploys
 with instant rollback, observability, and tests, all in one pnpm workspace.
 
@@ -84,7 +84,7 @@ flowchart TB
     browser["Browser · http://localhost:8080"] --> gateway["GATEWAY :8080<br/>routes by URL path"]
 
     gateway -- "/ · /products/* · /search · /sitemap.xml" --> storefront["STOREFRONT :3004<br/>Next.js · prerendered HTML · SEO"]
-    gateway -- "/orders/* · /shipping/*" --> shell
+    gateway -- "/orders/* · /shipping/* · /cart/* · /checkout" --> shell
 
     subgraph shellBox["SHELL · Module Federation host · :3000"]
         shell["Layout · top-level routes · session policy<br/>error boundaries · remote registry · event log"]
@@ -94,6 +94,7 @@ flowchart TB
         auth["AUTH · :3001<br/>auth/session · auth/LoginForm · auth/UserMenu"]
         orders["ORDERS · :3002<br/>orders/OrdersApp"]
         shipping["SHIPPING · :3003<br/>shipping/ShippingApp"]
+        cart["CART · :3005<br/>cart/CartApp · cart/Checkout · cart/CartBadge"]
     end
 
     registry[("mfe-registry.json<br/>which version is live, and where")]
@@ -102,6 +103,8 @@ flowchart TB
     shell -- "2 · runtime: mf-manifest.json + remoteEntry.js" --> auth
     shell -- "runtime" --> orders
     shell -- "runtime" --> shipping
+    shell -- "runtime" --> cart
+    cart -. "GET /catalog.json" .-> storefront
 ```
 
 - **Two zones behind one gateway.** Public pages come from Next.js as static HTML that search
@@ -131,6 +134,7 @@ Each team can also work on its app alone, without the shell:
 pnpm dev:auth        # http://localhost:3001
 pnpm dev:orders      # http://localhost:3002
 pnpm dev:shipping    # http://localhost:3003
+pnpm dev:cart        # http://localhost:3005  (prices need dev:storefront running)
 pnpm dev:shell       # http://localhost:3000  (the signed-in app without the gateway)
 pnpm dev:storefront  # http://localhost:3004  (the public site without the gateway)
 ```
@@ -141,7 +145,7 @@ pnpm dev:storefront  # http://localhost:3004  (the public site without the gatew
 
 Every part of the screen has a coloured label showing which app rendered it:
 **STOREFRONT** (rose), **SHELL** (blue), **AUTH** (violet), **ORDERS** (green),
-**SHIPPING** (amber).
+**SHIPPING** (amber), **CART** (cyan).
 
 1. **Public zone:** open http://localhost:8080 and view the page source. Every product is already
    in the HTML, with JSON-LD, Open Graph tags and a canonical URL. Search for "desk": the results
@@ -155,10 +159,14 @@ Every part of the screen has a coloured label showing which app rendered it:
    **Track shipment →** appears.
 5. **Replay:** reload, create an order *before* visiting Shipping, then open Shipping. It catches
    up on the event it missed.
-6. **Break it:** open `/orders?break=orders`. Only the Orders area shows a fallback with
+6. **Shop across four apps:** sign out, open a product and click **Add to cart**. The Cart app
+   keeps it for you as a guest; its badge sits in the shell header. **Checkout** asks you to sign
+   in, then **Place order**: Cart announces `checkout.completed`, Orders creates the order, and
+   Shipping ships it the next time it loads.
+7. **Break it:** open `/orders?break=orders`. Only the Orders area shows a fallback with
    **Retry**, and the rest of the page keeps working. Stop the `orders` dev server and you get
    the same result.
-7. **Fail closed:** stop the `auth` dev server and open `/orders`. The protected page refuses to
+8. **Fail closed:** stop the `auth` dev server and open `/orders`. The protected page refuses to
    render, because nobody can say who the user is. (`/orders?break=auth` crashes only Auth's
    header menu, and the rest of the page keeps working.)
 
@@ -174,6 +182,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 | **auth** | MF remote | 3001 | `./session`, `./LoginForm`, `./UserMenu` | (none) | [apps/auth](apps/auth/) |
 | **orders** | MF remote | 3002 | `./OrdersApp` | `/orders/*` | [apps/orders](apps/orders/) |
 | **shipping** | MF remote | 3003 | `./ShippingApp` | `/shipping/*` | [apps/shipping](apps/shipping/) |
+| **cart** | MF remote | 3005 | `./CartApp`, `./Checkout`, `./CartBadge` | `/cart/*`, `/checkout` | [apps/cart](apps/cart/) |
 
 **Who owns what:**
 
@@ -184,6 +193,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 | Auth | Identity: login UI, session, current user, the token | Whether a page needs login |
 | Orders | Orders: list, details, status, creating orders | Shipments, users |
 | Shipping | Shipments and tracking; creating a shipment when an order is placed | Order data (it stores only an order *id*) |
+| Cart | The cart (guests too) and checkout; announcing `checkout.completed` | Product data (it stores slugs, reads prices from `/catalog.json`), orders, identity |
 
 For a per-app walkthrough, read the [developer overview](docs/developer-overview.md#the-apps).
 
@@ -213,7 +223,8 @@ things, and domain code stays in the app that owns it.
 | --- | --- | --- |
 | **Exposed modules** | The shell loads `orders/OrdersApp`, and asks `auth/session` for the current user | `AuthSessionModule` in contracts, [remotes.d.ts](apps/shell/src/remotes.d.ts) |
 | **URLs** | Orders links to `/shipping/order/1002`; Shipping resolves it to a shipment | `AppPath` in contracts |
-| **Events** | Orders publishes `order.created`; Shipping reacts with `shipment.created` | `MicroShopEvents` in contracts |
+| **Events** | Cart publishes `checkout.completed`; Orders creates the order and publishes `order.created`; Shipping reacts with `shipment.created` | `MicroShopEvents` in contracts |
+| **Props** (one remote only) | The shell passes the signed-in customer into `cart/Checkout` | `CheckoutProps` in contracts |
 
 ```mermaid
 sequenceDiagram
@@ -249,8 +260,9 @@ registry and every remote are loaded lazily, so one missing server can't blank t
 | Auth is unreachable on a protected page | The page **fails closed**: nothing protected renders |
 | The registry is missing | The shell renders; each remote shows its fallback |
 
-Try it: `/orders?break=orders`, `/shipping?break=shipping`, `/orders?break=auth`, or stop any
-app's dev server.
+Try it: `/orders?break=orders`, `/shipping?break=shipping`, `/orders?break=auth`,
+`/cart?break=cart`, or stop any app's dev server. If the catalog API is down, Cart keeps your
+cart and shows "prices unavailable" with a Retry instead of crashing.
 Details, including two retry bugs we hit: [Chapter 7](docs/GUIDE.md#chapter-7-failure-isolation).
 
 ---
@@ -306,7 +318,7 @@ connecting a real monitoring backend.
 | Layer | Command | What it proves |
 | --- | --- | --- |
 | **Contracts** | `pnpm typecheck` | Contract rules hold at compile time: unknown URLs, unversioned or "fat" event payloads and unknown event sources don't compile |
-| **Unit** | `pnpm test` | Event bus delivery, replay and input validation; logger sinks; Orders and Shipping stores react to events idempotently and catch up via replay |
+| **Unit** | `pnpm test` | Event bus delivery, replay and input validation; logger sinks; the Cart store and checkout; Orders and Shipping stores react to events idempotently and catch up via replay; catalog search |
 | **End-to-end** | `pnpm test:e2e` | The full system in a real browser: the user journey, cross-app events, failure isolation and retry, SEO output. Starts every server itself |
 
 Unit tests run in Vitest with happy-dom. E2E tests use Playwright with your local Chrome
@@ -323,6 +335,7 @@ micro-shop/
 │   ├── auth/           MF remote: identity             :3001
 │   ├── orders/         MF remote: orders               :3002
 │   ├── shipping/       MF remote: shipments            :3003
+│   ├── cart/           MF remote: cart and checkout    :3005
 │   └── storefront/     Next.js zone: public catalog    :3004
 ├── packages/
 │   ├── contracts/      types shared between apps (session API, URLs, events)
@@ -350,7 +363,7 @@ exposed component. See [Part 1 of the guide](docs/GUIDE.md#repository-layout).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Run every app, the storefront and the gateway in development mode |
-| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `storefront`, `gateway` |
+| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `storefront`, `gateway` |
 | `pnpm build` / `pnpm build:<app>` | Build every app, or one, into its own artifact |
 | `pnpm typecheck` | Typecheck every app and package, including contract type-tests |
 | `pnpm test` | Unit tests (Vitest) |
@@ -439,5 +452,8 @@ Each has a checklist in the
 6. ✅ Failure isolation (per-remote error boundaries, retry, fail-closed auth, `?break=<app>`)
 7. ✅ Next.js storefront for SEO + a gateway composing two zones on one origin
 8. ✅ Independent deployment (runtime registry, versioned CDN, rollback), observability, tests
+9. ✅ Catalog search (`/search`, server-rendered, `noindex`)
+10. ✅ Cart remote and checkout: guest carts, sign-in at checkout, `checkout.completed` → Orders →
+    Shipping, a catalog read API, typed props from the shell
 
 Next ideas are in the [roadmap](docs/GUIDE.md#roadmap).

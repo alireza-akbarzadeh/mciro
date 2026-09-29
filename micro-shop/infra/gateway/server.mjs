@@ -5,8 +5,10 @@
 // Cloudflare, nginx, Vercel Microfrontends...). It's written by hand here, with
 // no dependencies, so every routing decision is visible.
 //
-//   /  /products/*  /search  /sitemap.xml  /robots.txt  /_next/*   → storefront (Next.js)
-//   everything else: /orders/*, /shipping/*, shell assets  → shell (Module Federation host)
+//   /  /products/*  /search  /catalog.json  /sitemap.xml  /robots.txt  /_next/*
+//                                                         → storefront (Next.js)
+//   everything else: /orders/*, /shipping/*, /cart/*, /checkout, shell assets
+//                                                         → shell (Module Federation host)
 //
 // Remote micro-frontends (auth, orders, shipping) are NOT behind the gateway:
 // the shell loads them from their own origins, the way it would from a CDN.
@@ -32,6 +34,8 @@ function zoneFor(pathname) {
   if (pathname.startsWith('/products/') || pathname === '/products') return 'storefront';
   // Catalog search. A public page, so it lives in the storefront zone.
   if (pathname === '/search') return 'storefront';
+  // The catalog's read API (names and prices), used by the Cart remote.
+  if (pathname === '/catalog.json') return 'storefront';
   if (pathname === '/sitemap.xml' || pathname === '/robots.txt') return 'storefront';
   // Next.js assets, dev overlay and HMR websocket.
   if (pathname.startsWith('/_next/') || pathname.startsWith('/__nextjs')) return 'storefront';

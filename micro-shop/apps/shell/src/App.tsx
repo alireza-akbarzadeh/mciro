@@ -23,6 +23,8 @@ const loadOrdersApp = () => loadRemoteModule('orders/OrdersApp');
 const loadShippingApp = () => loadRemoteModule('shipping/ShippingApp');
 const loadUserMenu = () => loadRemoteModule('auth/UserMenu');
 const loadLoginForm = () => loadRemoteModule('auth/LoginForm');
+const loadCartApp = () => loadRemoteModule('cart/CartApp');
+const loadCheckout = () => loadRemoteModule('cart/Checkout');
 
 export function App() {
   return (
@@ -42,6 +44,16 @@ export function App() {
           element={
             <RequireSession>
               <Remote name="shipping" load={loadShippingApp} />
+            </RequireSession>
+          }
+        />
+        {/* Guests may fill a cart; the shell asks for sign-in only at checkout. */}
+        <Route path="cart/*" element={<Remote name="cart" load={loadCartApp} />} />
+        <Route
+          path="checkout"
+          element={
+            <RequireSession>
+              <CheckoutForCustomer />
             </RequireSession>
           }
         />
@@ -94,12 +106,27 @@ function SessionGate({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Composition: the shell is the only app that talks to Auth, so it hands Cart's
+ * checkout the signed-in customer (CheckoutProps). Only id and name cross over;
+ * the email and the token stay with Auth.
+ */
+function CheckoutForCustomer() {
+  const session = useSession();
+  if (!session) return null; // RequireSession renders this only once signed in.
+  const { id, name } = session.user;
+  return <Remote name="cart" load={loadCheckout} props={{ customer: { id, name } }} />;
+}
+
 const deepLinks: { path: AppPath; owner: string; note: string }[] = [
   { path: '/orders', owner: 'Orders', note: 'Order history list' },
   { path: '/orders/1002', owner: 'Orders', note: 'Order details with tracking option' },
   { path: '/shipping/SHP-2001', owner: 'Shipping', note: 'Detailed tracking timeline' },
   { path: '/shipping/order/1002', owner: 'Shipping', note: 'Resolves order ID to shipment' },
   { path: '/shipping/order/1003', owner: 'Shipping', note: 'Pending shipment resolution' },
+  { path: '/cart', owner: 'Cart', note: 'Your cart, open to guests' },
+  { path: '/cart/add?product=standing-desk', owner: 'Cart', note: 'Adds a product, then shows the cart' },
+  { path: '/checkout', owner: 'Cart', note: 'Checkout, behind sign-in' },
 ];
 
 const breakLinks = ['/orders?break=orders', '/shipping?break=shipping', '/?break=auth'];
@@ -112,14 +139,14 @@ function Home() {
         <CardHeader className="space-y-1.5 pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold tracking-tight">
-              Four applications, one seamless interface
+              Five applications, one seamless interface
             </CardTitle>
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
               Live Federation
             </span>
           </div>
           <CardDescription className="text-sm">
-            Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003), independently built & orchestrated at runtime.
+            Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003) · Cart (3005), independently built & orchestrated at runtime.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 text-sm text-slate-600 dark:text-slate-400">

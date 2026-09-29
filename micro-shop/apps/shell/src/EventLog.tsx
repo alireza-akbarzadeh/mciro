@@ -9,6 +9,7 @@ const accentBySource: Record<AppName, Accent> = {
   auth: 'violet',
   orders: 'emerald',
   shipping: 'amber',
+  cart: 'cyan',
 };
 
 const badgeStylesBySource: Record<AppName, string> = {
@@ -16,6 +17,7 @@ const badgeStylesBySource: Record<AppName, string> = {
   auth: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
   orders: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
   shipping: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  cart: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
 };
 
 export function EventLog() {
@@ -135,7 +137,7 @@ export function EventLog() {
 
         {/* Source Filter Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto text-[11px]">
-          {(['all', 'shell', 'auth', 'orders', 'shipping'] as const).map((source) => (
+          {(['all', 'shell', 'auth', 'orders', 'shipping', 'cart'] as const).map((source) => (
             <button
               key={source}
               type="button"

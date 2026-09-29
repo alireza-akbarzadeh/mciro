@@ -10,6 +10,7 @@ import { CatalogSearch } from '../components/global-search';
 
 
 const loadUserMenu = () => loadRemoteModule('auth/UserMenu');
+const loadCartBadge = () => loadRemoteModule('cart/CartBadge');
 
 export function Layout() {
   return (
@@ -49,6 +50,8 @@ export function Layout() {
                 React v{reactVersion}
               </span>
             </div>
+            {/* Two remotes side by side: if one is down, the other still renders. */}
+            <Remote name="cart" load={loadCartBadge} variant="inline" />
             <Remote name="auth" load={loadUserMenu} variant="inline" />
           </div>
         </div>

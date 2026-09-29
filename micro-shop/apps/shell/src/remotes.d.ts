@@ -40,3 +40,26 @@ declare module 'shipping/ShippingApp' {
   const ShippingApp: ComponentType;
   export default ShippingApp;
 }
+
+declare module 'cart/CartApp' {
+  import type { ComponentType } from 'react';
+
+  const CartApp: ComponentType;
+  export default CartApp;
+}
+
+declare module 'cart/Checkout' {
+  import type { ComponentType } from 'react';
+  import type { CheckoutProps } from '@micro-shop/contracts';
+
+  // The one remote that takes props: the shell passes the signed-in customer.
+  const Checkout: ComponentType<CheckoutProps>;
+  export default Checkout;
+}
+
+declare module 'cart/CartBadge' {
+  import type { ComponentType } from 'react';
+
+  const CartBadge: ComponentType;
+  export default CartBadge;
+}

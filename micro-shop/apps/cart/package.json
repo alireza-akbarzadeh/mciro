@@ -1,0 +1,33 @@
+{
+  "name": "@micro-shop/cart",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspack dev",
+    "build": "rspack build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@micro-shop/event-bus": "workspace:*",
+    "@micro-shop/observability": "workspace:*",
+    "@micro-shop/ui": "workspace:*",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@micro-shop/contracts": "workspace:*",
+    "@module-federation/enhanced": "^2.9.2",
+    "@rspack/cli": "^2.2.7",
+    "@rspack/core": "^2.2.7",
+    "@rspack/dev-server": "^2.2.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.28",
+    "postcss-loader": "^8.2.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
+  }
+}

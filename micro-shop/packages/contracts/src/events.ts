@@ -8,12 +8,38 @@
 //   - Every payload carries a schema `version`. Publisher and consumer are
 //     deployed independently, so a consumer may meet a version it doesn't know.
 
+import type { Customer } from './cart';
+
 /** Apps that can publish events. */
-export type AppName = 'shell' | 'auth' | 'orders' | 'shipping';
+export type AppName = 'shell' | 'auth' | 'orders' | 'shipping' | 'cart';
+
+/** One line of a completed checkout. */
+export type CheckoutItem = {
+  productSlug: string;
+  name: string;
+  quantity: number;
+  /** USD, at the moment of checkout. */
+  unitPrice: number;
+};
 
 export type MicroShopEvents = {
   'auth.user.logged-in': { version: 1; userId: string };
   'auth.user.logged-out': { version: 1; userId: string };
+  /**
+   * A signed-in customer bought what was in their cart. Orders reacts by
+   * creating the order.
+   *
+   * Why the items travel with the event, despite "thin payloads": they ARE the
+   * fact. What was bought, how many, and at what price is only true at this
+   * moment. Prices change later, so a reference to the cart would not be enough.
+   */
+  'checkout.completed': {
+    version: 1;
+    /** Unique per checkout. Orders uses it to create exactly one order. */
+    checkoutId: string;
+    customer: Customer;
+    items: readonly CheckoutItem[];
+  };
   'order.created': { version: 1; orderId: string };
   'shipment.created': { version: 1; shipmentId: string; orderId: string };
 };

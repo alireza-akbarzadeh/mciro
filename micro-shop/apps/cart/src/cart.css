@@ -1,0 +1,12 @@
+/*
+ * REMOTE stylesheet: utilities only. No preflight, no token values.
+ * See apps/orders/src/orders.css and docs/shared-packages.md.
+ */
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@import "@micro-shop/ui/styles/theme.css";
+
+@source "../../../packages/ui/src";

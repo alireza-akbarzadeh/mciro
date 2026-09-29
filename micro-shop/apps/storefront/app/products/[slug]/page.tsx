@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { AppPath } from '@micro-shop/contracts';
 import { Badge } from '@micro-shop/ui/components/badge';
 import { Button } from '@micro-shop/ui/components/button';
 import { MfeFrame } from '@micro-shop/ui/components/mfe-frame';
@@ -60,6 +61,8 @@ export default async function ProductPage({ params }: Props) {
     },
   };
 
+  const addToCartUrl: AppPath = `/cart/add?product=${encodeURIComponent(product.slug)}`;
+
   return (
     <MfeFrame label="STOREFRONT" accent="rose">
       <article className="grid gap-5 p-5">
@@ -78,12 +81,13 @@ export default async function ProductPage({ params }: Props) {
         </div>
         <p className="max-w-prose leading-relaxed text-muted-foreground">{product.description}</p>
         <div className="flex flex-wrap items-center gap-3">
-          {/* Checkout is out of scope for this demo. The link crosses into the shell's zone. */}
+          {/* The cart belongs to the Cart app, in the shell's zone. The storefront shares no
+              code with it, only the URL contract: a plain link, no JavaScript needed here. */}
           <Button asChild>
-            <a href="/orders">Go to your orders</a>
+            <a href={addToCartUrl}>Add to cart</a>
           </Button>
           <span className="text-xs text-muted-foreground">
-            Opens the signed-in app (Module Federation shell) with a full page load.
+            Opens the cart (Cart app, in the Module Federation shell) with a full page load.
           </span>
         </div>
       </article>

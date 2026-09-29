@@ -8,6 +8,9 @@ type RemoteModules = {
   'auth/UserMenu': typeof import('auth/UserMenu');
   'orders/OrdersApp': typeof import('orders/OrdersApp');
   'shipping/ShippingApp': typeof import('shipping/ShippingApp');
+  'cart/CartApp': typeof import('cart/CartApp');
+  'cart/Checkout': typeof import('cart/Checkout');
+  'cart/CartBadge': typeof import('cart/CartBadge');
 };
 
 export type RemoteId = keyof RemoteModules;

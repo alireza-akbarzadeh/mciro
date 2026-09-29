@@ -24,7 +24,12 @@ test('Retry recovers once the remote is reachable again', async ({ page }) => {
   await expect(page.getByText('Orders is temporarily unavailable')).toBeVisible();
 
   await page.unroute('http://localhost:3002/**');
-  await page.getByRole('button', { name: 'Retry' }).click();
+  // Scoped to Orders' fallback: every failed remote has its own Retry.
+  await page
+    .getByRole('alert')
+    .filter({ hasText: 'Orders is temporarily unavailable' })
+    .getByRole('button', { name: 'Retry' })
+    .click();
   await expect(renderedBy(page, 'Orders')).toBeVisible();
 });
 

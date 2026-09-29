@@ -1,5 +1,5 @@
 import { useSyncExternalStore, version as reactVersion } from 'react';
-import { Link, Route, Routes, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, Route, Routes, useNavigate, useParams } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
 import { Badge } from '@micro-shop/ui/components/badge';
 import { Button } from '@micro-shop/ui/components/button';
@@ -23,7 +23,13 @@ import {
 import { cn } from '@micro-shop/ui/lib/utils';
 import { orderTotal, type OrderStatus } from './orders-data';
 import { throwIfBroken } from './fault-injection';
-import { createTestOrder, findOrder, getSnapshot, subscribeToOrders } from './orders-store';
+import {
+  createTestOrder,
+  findOrder,
+  findOrderByCheckout,
+  getSnapshot,
+  subscribeToOrders,
+} from './orders-store';
 import './orders.css';
 
 function useOrders() {
@@ -56,6 +62,7 @@ export default function OrdersApp() {
         <CardContent>
           <Routes>
             <Route index element={<OrderList />} />
+            <Route path="checkout/:checkoutId" element={<OrderForCheckout />} />
             <Route path=":orderId" element={<OrderDetails />} />
             <Route path="*" element={<NotFound what="page" />} />
           </Routes>
@@ -63,6 +70,23 @@ export default function OrdersApp() {
       </Card>
     </MfeFrame>
   );
+}
+
+/**
+ * /orders/checkout/:checkoutId — the entry point Cart navigates to after
+ * checkout. Cart knows its checkout id, not the order id (Orders assigns that),
+ * so resolving one to the other is Orders' job, like /shipping/order/:orderId.
+ */
+function OrderForCheckout() {
+  useOrders();
+  const { checkoutId = '' } = useParams();
+  const order = findOrderByCheckout(checkoutId);
+
+  if (order) {
+    const orderUrl: AppPath = `/orders/${order.id}`;
+    return <Navigate to={orderUrl} replace />;
+  }
+  return <NotFound what={`order for checkout ${checkoutId}`} />;
 }
 
 function OrderList() {

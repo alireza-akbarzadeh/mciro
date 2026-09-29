@@ -15,6 +15,8 @@ export type Order = {
   createdAt: string;
   status: OrderStatus;
   lines: readonly OrderLine[];
+  /** Set when the order came from Cart's checkout (`checkout.completed`). */
+  checkoutId?: string;
 };
 
 /** Seed data. The live list is in orders-store.ts. */

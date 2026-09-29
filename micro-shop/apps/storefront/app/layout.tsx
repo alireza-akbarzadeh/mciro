@@ -39,6 +39,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <a href="/shipping" className="underline-offset-4 hover:underline">
               Shipping
             </a>
+            <a href="/cart" className="underline-offset-4 hover:underline">
+              Cart
+            </a>
           </nav>
           <div className="ml-auto flex flex-wrap items-center gap-4">
             <SearchForm id="site-search" label="Search the store" className="w-72" />

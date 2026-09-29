@@ -13,6 +13,7 @@ const accents = {
   emerald: { frame: 'border-emerald-600', label: 'bg-emerald-600' },
   amber: { frame: 'border-amber-500', label: 'bg-amber-500' },
   rose: { frame: 'border-rose-600', label: 'bg-rose-600' },
+  cyan: { frame: 'border-cyan-600', label: 'bg-cyan-600' },
 } as const;
 
 type Accent = keyof typeof accents;

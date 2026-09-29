@@ -2,7 +2,7 @@
 // Simulated independent deployment of micro-frontends to a CDN.
 //
 //   node infra/deploy/release.mjs orders            publish apps/orders/dist as a new version and make it live
-//   node infra/deploy/release.mjs all               the same for auth, orders and shipping
+//   node infra/deploy/release.mjs all               the same for auth, orders, shipping and cart
 //   node infra/deploy/release.mjs rollback orders 0.1.0
 //   node infra/deploy/release.mjs status
 //
@@ -23,7 +23,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../
 const cdnRoot = path.join(repoRoot, 'infra/cdn/public');
 const registryPath = path.join(cdnRoot, 'mfe-registry.json');
 const CDN_ORIGIN = process.env.CDN_ORIGIN ?? 'http://localhost:8081';
-const REMOTES = ['auth', 'orders', 'shipping'];
+const REMOTES = ['auth', 'orders', 'shipping', 'cart'];
 
 /**
  * @typedef {{ entry: string, version: string }} LiveRemote

@@ -64,6 +64,7 @@ flowchart LR
 | [auth](../apps/auth/) | MF remote | 3001 | Identity: who the user is, login, logout | `./session`, `./LoginForm`, `./UserMenu` |
 | [orders](../apps/orders/) | MF remote | 3002 | Orders, everything under `/orders/*` | `./OrdersApp` |
 | [shipping](../apps/shipping/) | MF remote | 3003 | Shipments and tracking, everything under `/shipping/*` | `./ShippingApp` |
+| [cart](../apps/cart/) | MF remote | 3005 | The cart (`/cart/*`, guests too) and checkout (`/checkout`, signed in) | `./CartApp`, `./Checkout`, `./CartBadge` |
 | [storefront](../apps/storefront/) | Next.js zone | 3004 | Public catalog: `/`, `/products/*`, `/search`, sitemap, robots | Server-rendered HTML |
 | [gateway](../infra/gateway/) | Reverse proxy | 8080 | The single public origin | Routes to storefront or shell |
 
@@ -124,6 +125,31 @@ timeline, and `/order/:orderId`, which resolves an order id to its shipment and 
   publishes `shipment.created`.
 - Stores only an `orderId` reference, never a copy of Orders' data.
 
+### Cart (`apps/cart`)
+
+Owns the shopping cart and checkout. It exposes three modules:
+
+- `cart/CartApp`, mounted at `/cart/*` **without** a session gate, so guests can fill a cart.
+  `/cart/add?product=<slug>` is the entry point other apps link to. The storefront's
+  "Add to cart" is a plain link to it. It adds one item and then replaces itself with `/cart`,
+  so Back and reload never add the item twice.
+- `cart/Checkout`, mounted at `/checkout` **behind** the shell's sign-in policy. It is the only
+  remote that takes props: the shell passes the signed-in customer (`CheckoutProps`), because
+  remotes never talk to Auth themselves.
+- `cart/CartBadge`, the item count in the shell header.
+
+How it works:
+
+- A cart holds product **slugs** and quantities, stored in `localStorage` on the page's origin,
+  so a guest cart survives reloads. Names and prices come from the storefront's catalog read
+  API, `GET /catalog.json` ([catalog-client.ts](../apps/cart/src/catalog-client.ts)). If that
+  API is down, Cart shows "prices unavailable" with Retry and keeps the cart.
+- **Place order** publishes `checkout.completed` with the customer and a snapshot of the items
+  (slug, name, quantity, unit price), empties the cart, and navigates to
+  `/orders/checkout/:checkoutId`. Cart never creates the order itself: that's Orders' job.
+- Standalone (`pnpm dev:cart`, :3005) uses a demo customer, and proxies `/catalog.json` to the
+  storefront on :3004.
+
 ### Storefront (`apps/storefront`)
 
 A Next.js app for pages that must work **without JavaScript** (search engines, link previews).
@@ -136,6 +162,10 @@ It is not a federation host or remote.
   without JavaScript. Results pages are `noindex, follow` and left out of the sitemap. The search
   logic is `searchProducts()` in [lib/catalog.ts](../apps/storefront/lib/catalog.ts): every word
   must appear in the name, category, summary or description.
+- `/catalog.json` is the catalog's public **read API** (slug, name, price), typed by
+  `CatalogResponse` in contracts and generated at build time. The Cart uses it for prices.
+- Product pages link **Add to cart** to `/cart/add?product=<slug>`: a plain link into the shell's
+  zone, so it needs no JavaScript.
 - The only client-side code is [account-status.tsx](../apps/storefront/components/account-status.tsx),
   which reads Auth's display-name cookie.
 - Links into `/orders` and `/shipping` are plain `<a href>`: they cross into the other zone, so
@@ -157,8 +187,8 @@ workspace dependencies. They are **build-time** dependencies: each app bundles i
 | Package | Runtime code? | Shared state | Used by |
 | --- | --- | --- | --- |
 | `contracts` | No, types only | none | every app |
-| `event-bus` | Yes | `window.__microShopEventLog__` | auth, orders, shipping (publish/subscribe), shell (log panel) |
-| `observability` | Yes | `window.__microShopLogSinks__` | shell, auth, orders, shipping |
+| `event-bus` | Yes | `window.__microShopEventLog__` | auth, orders, shipping, cart (publish/subscribe), shell (log panel) |
+| `observability` | Yes | `window.__microShopLogSinks__` | shell, auth, orders, shipping, cart |
 | `ui` | Yes (React components, CSS) | none | every app, including the storefront |
 
 ### `@micro-shop/contracts`
@@ -171,7 +201,10 @@ the shell and Auth agree on what `getSession()` returns. Putting the shape in on
 means both producer and consumer compile against it. A breaking change fails the **build** of
 every affected app, instead of failing in a user's browser.
 
-It defines three contracts:
+It defines five contracts: the three below, plus the catalog read API
+([catalog.ts](../packages/contracts/src/catalog.ts): `CatalogResponse`, served at `/catalog.json`)
+and the props the shell passes to Cart's checkout
+([cart.ts](../packages/contracts/src/cart.ts): `CheckoutProps = { customer: { id, name } }`).
 
 #### 1. Auth API ([auth.ts](../packages/contracts/src/auth.ts))
 
@@ -196,9 +229,11 @@ type AuthSessionModule = {
 type AppPath =
   | '/' | `/products/${string}`
   | '/search' | `/search?q=${string}`
-  | '/orders' | `/orders/${string}`
+  | '/orders' | `/orders/${string}`          // incl. /orders/checkout/:checkoutId
   | '/shipping' | `/shipping/${string}`
-  | `/shipping/order/${string}`;
+  | `/shipping/order/${string}`
+  | '/cart' | `/cart/add?product=${string}`
+  | '/checkout';
 ```
 
 URLs are treated as public API: other apps link to them, users bookmark them, search engines
@@ -213,11 +248,13 @@ A typo like `/shipment/1002` doesn't compile.
 #### 3. Events ([events.ts](../packages/contracts/src/events.ts))
 
 ```ts
-type AppName = 'shell' | 'auth' | 'orders' | 'shipping';
+type AppName = 'shell' | 'auth' | 'orders' | 'shipping' | 'cart';
 
 type MicroShopEvents = {
   'auth.user.logged-in':  { version: 1; userId: string };
   'auth.user.logged-out': { version: 1; userId: string };
+  'checkout.completed':   { version: 1; checkoutId: string; customer: Customer;
+                            items: readonly CheckoutItem[] };  // slug, name, quantity, unitPrice
   'order.created':        { version: 1; orderId: string };
   'shipment.created':     { version: 1; shipmentId: string; orderId: string };
 };
@@ -236,7 +273,9 @@ The rules the event types enforce:
 - **Events are facts, in the past tense** (`order.created`), not commands (`create shipment`).
   The publisher doesn't know who listens.
 - **Payloads are thin:** ids and a few fields, never a whole domain object. Shipping gets an
-  `orderId`, not Orders' `Order` type.
+  `orderId`, not Orders' `Order` type. The one deliberate exception is `checkout.completed`: its
+  items *are* the fact (what was bought, at what price, at that moment), and prices change
+  later, so a reference to the cart would not be enough.
 - **Every payload has a `version`.** Publisher and consumer deploy independently, so a consumer
   may receive a version it doesn't know yet.
 
@@ -463,6 +502,34 @@ sequenceDiagram
 Orders and Shipping never import each other. They share only the event **types** (contracts)
 and the **transport** (`window`).
 
+### Buying: from a product page to a shipment
+
+```mermaid
+sequenceDiagram
+    participant SF as Storefront
+    participant C as Cart
+    participant Sh as Shell
+    participant A as Auth
+    participant O as Orders
+    participant S as Shipping
+
+    SF->>C: link /cart/add?product=monitor-arm (full page load)
+    C->>C: add slug to cart (localStorage) → replace URL with /cart
+    C->>SF: GET /catalog.json (names, prices)
+    C->>Sh: link /checkout
+    Sh->>A: session? none → Auth's LoginForm
+    A-->>Sh: signed in
+    Sh->>C: render cart/Checkout with props { customer: { id, name } }
+    C->>O: publish checkout.completed { checkoutId, customer, items }
+    C->>Sh: navigate /orders/checkout/:checkoutId (loads Orders)
+    Note over O: replay: creates the order (one per checkoutId),<br/>publishes order.created, redirects to /orders/:id
+    Note over S: next time Shipping loads, replay creates the shipment
+```
+
+Four apps take part and none imports another. The hand-offs are a URL (storefront → cart), a
+typed prop (shell → checkout), an event (cart → orders → shipping) and a read API (cart →
+catalog).
+
 ### When something breaks
 
 | Failure | What the user sees | What is logged |
@@ -471,6 +538,7 @@ and the **transport** (`window`).
 | A remote throws while rendering (`?break=orders`) | Same fallback, only in that area | `[shell] remote "orders" failed; showing fallback` with component stack |
 | Auth is down on a protected page | Protected page is **not** rendered (fail closed) | same as above, for `auth` |
 | Registry missing | Shell renders; every remote shows its fallback | `[shell] remote registry unavailable` |
+| The catalog API is down | Cart keeps the cart and shows "prices unavailable" + Retry; checkout waits | `[cart] catalog unavailable (/catalog.json)` |
 
 Try these yourself with the links on the shell's home page (`http://localhost:3000/`).
 
@@ -516,10 +584,18 @@ What the unit tests cover:
   filled only from events; snapshot identity is stable.
 - **shipping store**: reacts to `order.created`, is idempotent, never reuses ids, and catches up
   via replay ([shipping-store.replay.test.ts](../apps/shipping/src/shipping-store.replay.test.ts)).
+- **cart**: the store merges, caps and validates lines and survives a reload; checkout publishes
+  `checkout.completed` with only the contract's customer fields, then empties the cart, and
+  refuses empty carts or unavailable products.
+- **orders from checkout**: loaded late, Orders replays `checkout.completed` and creates exactly
+  one order per checkout
+  ([orders-store.checkout.test.ts](../apps/orders/src/orders-store.checkout.test.ts)).
+- **catalog search**: matching rules and query normalization.
 
 E2E specs in [tests/e2e/specs/](../tests/e2e/specs/): `journey` (sign in → orders → shipping),
 `events` (cross-app events and replay), `failure` (isolation and retry), `seo` (storefront HTML),
-`search` (catalog search from both headers, results HTML, noindex).
+`search` (catalog search from both headers, results HTML, noindex), `cart` (catalog API, guest
+cart, checkout → order → shipment, a crashing Cart contained).
 
 ---
 

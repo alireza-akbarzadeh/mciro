@@ -3,6 +3,7 @@
   "remotes": {
     "auth": { "version": "dev", "entry": "http://localhost:3001/mf-manifest.json" },
     "orders": { "version": "dev", "entry": "http://localhost:3002/mf-manifest.json" },
-    "shipping": { "version": "dev", "entry": "http://localhost:3003/mf-manifest.json" }
+    "shipping": { "version": "dev", "entry": "http://localhost:3003/mf-manifest.json" },
+    "cart": { "version": "dev", "entry": "http://localhost:3005/mf-manifest.json" }
   }
 }
