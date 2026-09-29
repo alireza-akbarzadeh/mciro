@@ -8,6 +8,7 @@
 //
 // Ownership of each prefix (behind the gateway on :8080):
 //   /, /products/*   storefront (Next.js, server-rendered, public, SEO)
+//   /categories/*    storefront (one page per category)
 //   /search          storefront (catalog search, ?q=<words>)
 //   /orders/*        orders     (via the shell, signed-in)
 //   /shipping/*      shipping   (via the shell, signed-in)
@@ -20,6 +21,7 @@
 export type AppPath =
   | '/'
   | `/products/${string}`
+  | `/categories/${string}`
   | '/search'
   /** The query parameter is part of the contract: other apps may link to a search. */
   | `/search?q=${string}`

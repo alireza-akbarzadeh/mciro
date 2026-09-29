@@ -5,7 +5,7 @@
 // Cloudflare, nginx, Vercel Microfrontends...). It's written by hand here, with
 // no dependencies, so every routing decision is visible.
 //
-//   /  /products/*  /search  /catalog.json  /sitemap.xml  /robots.txt  /_next/*
+//   /  /products/*  /categories/*  /search  /catalog.json  /sitemap.xml  /robots.txt  /_next/*
 //                                                         → storefront (Next.js)
 //   /api/cart/*                                           → cart-api (Fastify, the Cart team's backend)
 //   /api/auth/*                                           → auth-api (Fastify, users and sessions)
@@ -39,6 +39,7 @@ function zoneFor(pathname) {
   if (pathname.startsWith('/api/auth/')) return 'auth-api';
   if (pathname === '/') return 'storefront';
   if (pathname.startsWith('/products/') || pathname === '/products') return 'storefront';
+  if (pathname.startsWith('/categories/')) return 'storefront';
   // Catalog search. A public page, so it lives in the storefront zone.
   if (pathname === '/search') return 'storefront';
   // The catalog's read API (names and prices), used by the Cart API.

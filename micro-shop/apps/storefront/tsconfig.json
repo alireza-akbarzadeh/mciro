@@ -3,6 +3,9 @@
   "compilerOptions": {
     "allowJs": false,
     "incremental": true,
+    // db/migrate.ts and db/seed.ts run directly in Node, which needs real
+    // file names in imports (`./schema.ts`). Next's own code doesn't use them.
+    "allowImportingTsExtensions": true,
     "plugins": [{ "name": "next" }]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

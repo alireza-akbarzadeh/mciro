@@ -9,6 +9,7 @@ import type { EventEnvelope, MicroShopEvents } from './events';
 export const validPaths: AppPath[] = [
   '/',
   '/products/standing-desk',
+  '/categories/desk',
   '/search',
   '/search?q=desk',
   '/orders',

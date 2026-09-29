@@ -5,8 +5,9 @@ import type { NextConfig } from 'next';
 // URLs to the shell. The two share @micro-shop/ui at BUILD time, nothing at runtime.
 
 const nextConfig: NextConfig = {
-  // @micro-shop/ui ships TypeScript source; Next compiles it like app code.
-  transpilePackages: ['@micro-shop/ui'],
+  // Workspace packages ship TypeScript source; Next compiles them like app code.
+  // (service-kit: only its `/database` entry, the Postgres pool, is used here.)
+  transpilePackages: ['@micro-shop/ui', '@micro-shop/service-kit'],
 
   // In dev, the gateway (localhost:8080) proxies requests to this server.
   allowedDevOrigins: ['localhost', '127.0.0.1'],

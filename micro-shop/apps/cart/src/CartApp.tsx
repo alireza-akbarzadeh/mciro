@@ -13,6 +13,7 @@ import {
 } from '@micro-shop/ui/components/card';
 import { MfeFrame } from '@micro-shop/ui/components/mfe-frame';
 import { Skeleton } from '@micro-shop/ui/components/skeleton';
+import { toast, Toaster } from '@micro-shop/ui/components/sonner';
 import {
   Table,
   TableBody,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@micro-shop/ui/components/table';
-import { addItem, MAX_QUANTITY, removeItem, setQuantity } from './cart-store';
+import { addItem, type CartState, MAX_QUANTITY, removeItem, setQuantity } from './cart-store';
 import { throwIfBroken } from './fault-injection';
 import { CartUnavailable, currency, PricesUnavailable } from './shared';
 import { useCartState } from './use-cart';
@@ -57,6 +58,8 @@ export default function CartApp() {
           </Routes>
         </CardContent>
       </Card>
+      {/* Cart's own toasts (see the sonner component for why each app has its own). */}
+      <Toaster position="bottom-center" />
     </MfeFrame>
   );
 }
@@ -81,7 +84,9 @@ function AddToCart() {
   useEffect(() => {
     if (handledVisits.has(key)) return;
     handledVisits.add(key);
-    void addItem(productSlug).then(() => navigate(cartUrl, { replace: true }));
+    void addItem(productSlug).then(() =>
+      navigate(`${cartUrl}?added=${encodeURIComponent(productSlug)}`, { replace: true }),
+    );
   }, [key, productSlug, navigate]);
 
   return (
@@ -91,8 +96,29 @@ function AddToCart() {
   );
 }
 
+/**
+ * After "Add to cart" (the storefront's form, or /cart/add), the Cart API sends
+ * the browser to /cart?added=<slug>. Once the cart has loaded, say what was
+ * added, then drop the parameter so a reload or a shared link doesn't say it again.
+ */
+function useAddedToast(state: CartState) {
+  const { key } = useLocation();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const added = params.get('added');
+
+  useEffect(() => {
+    if (!added || state.status !== 'ready' || handledVisits.has(key)) return;
+    handledVisits.add(key);
+    const line = state.cart.lines.find((candidate) => candidate.productSlug === added);
+    if (line) toast.success(`Added ${line.name ?? line.productSlug} to your cart`);
+    navigate(cartUrl, { replace: true });
+  }, [added, state, key, navigate]);
+}
+
 function CartPage() {
   const state = useCartState();
+  useAddedToast(state);
 
   if (state.status === 'loading') {
     return (
@@ -225,7 +251,13 @@ function CartRow({ line, pricesAvailable }: { line: CartLineView; pricesAvailabl
         <Button
           variant="ghost"
           size="xs"
-          onClick={() => void removeItem(productSlug)}
+          onClick={() => {
+            void removeItem(productSlug);
+            // Undo instead of "Are you sure?": removing is instant, and easy to take back.
+            toast(`Removed ${label}`, {
+              action: { label: 'Undo', onClick: () => void addItem(productSlug, quantity) },
+            });
+          }}
           aria-label={`Remove ${label}`}
         >
           Remove

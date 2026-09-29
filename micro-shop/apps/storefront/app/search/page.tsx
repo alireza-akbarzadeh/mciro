@@ -30,7 +30,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function SearchPage({ searchParams }: Props) {
   const query = normalizeQuery((await searchParams).q);
-  const results = searchProducts(query);
+  const results = await searchProducts(query);
 
   return (
     <MfeFrame label="STOREFRONT" accent="rose">

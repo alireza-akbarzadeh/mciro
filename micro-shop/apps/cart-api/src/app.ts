@@ -124,8 +124,8 @@ export function buildApp({ catalog, carts, identity, logger = false, healthCheck
       request.log.info({ productSlug, quantity }, 'item added');
 
       // Post/Redirect/Get: a form submission lands on the cart page, and
-      // reloading it doesn't post again.
-      if (isFormPost(request)) return reply.redirect('/cart', 303);
+      // reloading it doesn't post again. `added` lets the page say what was added.
+      if (isFormPost(request)) return reply.redirect(`/cart?added=${encodeURIComponent(productSlug)}`, 303);
       return view(cartId);
     },
   );

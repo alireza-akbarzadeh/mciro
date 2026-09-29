@@ -84,7 +84,7 @@ describe('cart API', () => {
     });
 
     expect(response.statusCode).toBe(303);
-    expect(response.headers.location).toBe('/cart');
+    expect(response.headers.location).toBe('/cart?added=usb-c-cable');
     expect(response.headers['set-cookie']).toMatch(/^micro-shop-cart=/);
   });
 
