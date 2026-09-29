@@ -5,6 +5,7 @@ import { UpstreamUnavailableError } from '@micro-shop/service-kit';
 import { buildApp } from './app.ts';
 import { createMemoryCartStore } from './cart-store.ts';
 import { type CatalogSource, staticCatalog } from './catalog.ts';
+import { type Identity, staticIdentity } from './identity.ts';
 
 // The routes, with carts in memory. The Postgres store is checked against the
 // same behaviour in cart-store.contract.test.ts.
@@ -19,8 +20,10 @@ const downCatalog: CatalogSource = async () => {
 };
 
 /** A browser: remembers the cart cookie between requests, like a real one. */
-function browser(source: CatalogSource = catalog) {
-  const app = buildApp({ catalog: source, carts: createMemoryCartStore() });
+const ada = { id: 'u-ada', name: 'Ada Lovelace' };
+
+function browser(source: CatalogSource = catalog, identity: Identity = staticIdentity(ada)) {
+  const app = buildApp({ catalog: source, carts: createMemoryCartStore(), identity });
   let cookie: string | undefined;
 
   async function call(method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, payload?: object) {
@@ -111,13 +114,15 @@ describe('cart API', () => {
     expect(zero.json<CartView>().lines).toEqual([]);
   });
 
-  it('prices the checkout on the server, drops unknown customer fields, and empties the cart', async () => {
+  it('prices the checkout on the server, for the signed-in customer, and empties the cart', async () => {
     const { call } = browser();
     await call('POST', '/api/cart/items', { productSlug: 'standing-desk' });
     await call('POST', '/api/cart/items', { productSlug: 'usb-c-cable', quantity: 2 });
 
+    // Whatever the request claims is ignored: the customer comes from the session.
     const response = await call('POST', '/api/cart/checkout', {
-      customer: { id: 'u-ada', name: 'Ada Lovelace', email: 'ada@example.com' },
+      customer: { id: 'u-mallory', name: 'Mallory' },
+      items: [{ productSlug: 'standing-desk', unitPrice: 1 }],
     });
 
     expect(response.statusCode).toBe(201);
@@ -131,8 +136,25 @@ describe('cart API', () => {
     expect((await call('GET', '/api/cart')).json<CartView>().itemCount).toBe(0);
 
     // Checking out twice (a double click) finds an empty cart.
-    const again = await call('POST', '/api/cart/checkout', { customer: { id: 'u-ada', name: 'Ada' } });
+    const again = await call('POST', '/api/cart/checkout');
     expect(again.statusCode).toBe(409);
+  });
+
+  it('refuses checkout when signed out, or when sign-in can’t be checked', async () => {
+    const guest = browser(catalog, staticIdentity(null));
+    await guest.call('POST', '/api/cart/items', { productSlug: 'standing-desk' });
+    const signedOut = await guest.call('POST', '/api/cart/checkout');
+    expect(signedOut.statusCode).toBe(401);
+    expect(signedOut.json()).toMatchObject({ error: 'not_signed_in' });
+    // The guest's cart is untouched, ready for after sign-in.
+    expect((await guest.call('GET', '/api/cart')).json<CartView>().itemCount).toBe(1);
+
+    const authDown: Identity = async () => {
+      throw new UpstreamUnavailableError('auth down (test)');
+    };
+    const response = await browser(catalog, authDown).call('POST', '/api/cart/checkout');
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toMatchObject({ error: 'auth_unavailable' });
   });
 
   it('degrades when the catalog is down: the cart loads unpriced, changes wait', async () => {
@@ -152,7 +174,7 @@ describe('cart API', () => {
     });
     expect((await call('POST', '/api/cart/items', { productSlug: 'usb-c-cable' })).statusCode).toBe(503);
     expect(
-      (await call('POST', '/api/cart/checkout', { customer: { id: 'u-ada', name: 'Ada' } })).statusCode,
+      (await call('POST', '/api/cart/checkout')).statusCode,
     ).toBe(503);
   });
 

@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@micro-shop/auth-api": "workspace:*",
     "@micro-shop/event-bus": "workspace:*",
     "@micro-shop/observability": "workspace:*",
     "@micro-shop/ui": "workspace:*",

@@ -13,11 +13,9 @@ import type {
   AddItemBody,
   ApiError,
   CartView,
-  CheckoutBody,
   CheckoutResult,
   SetQuantityBody,
 } from '@micro-shop/cart-api/api-types';
-import type { Customer } from '@micro-shop/contracts';
 import { createLogger, errorData } from '@micro-shop/observability';
 
 export { MAX_QUANTITY } from '@micro-shop/cart-api/api-types';
@@ -131,13 +129,12 @@ export function removeItem(productSlug: string): Promise<void> {
 }
 
 /**
- * Prices and empties the cart ON THE SERVER, and returns what was bought.
- * Throws CartApiError, e.g. 409 when the cart is already empty (a double click).
+ * Prices and empties the cart ON THE SERVER, for the customer the Auth API says
+ * is signed in (the browser sends nothing about who it is). Returns what was
+ * bought. Throws CartApiError: 401 signed out, 409 already empty (a double click).
  */
-export async function checkout(customer: Customer): Promise<CheckoutResult> {
-  // Only the contract's fields leave Cart; the server drops anything else too.
-  const body: CheckoutBody = { customer: { id: customer.id, name: customer.name } };
-  const result = await send<CheckoutResult>('POST', '/checkout', body);
+export async function checkout(): Promise<CheckoutResult> {
+  const result = await send<CheckoutResult>('POST', '/checkout');
   void refreshCart();
   return result;
 }

@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { buildApp } from './app.ts';
 import { createMemoryCartStore } from './cart-store.ts';
 import { httpCatalog } from './catalog.ts';
+import { authApiIdentity } from './identity.ts';
 import { createPostgresCartStore } from './postgres-cart-store.ts';
 
 // Starts the Cart API. The gateway (:8080) routes /api/cart/* here, so the
@@ -19,6 +20,7 @@ import { createPostgresCartStore } from './postgres-cart-store.ts';
 
 const port = portFromEnv('CART_API_PORT', 4005);
 const catalogUrl = process.env.CATALOG_URL ?? 'http://localhost:3004/catalog.json';
+const sessionUrl = process.env.AUTH_SESSION_URL ?? 'http://localhost:4001/api/auth/session';
 const databaseUrl = process.env.DATABASE_URL;
 
 const pool = databaseUrl ? createDatabasePool(databaseUrl) : null;
@@ -26,6 +28,7 @@ const pool = databaseUrl ? createDatabasePool(databaseUrl) : null;
 const app = buildApp({
   catalog: httpCatalog(catalogUrl),
   carts: pool ? createPostgresCartStore(drizzle(pool)) : createMemoryCartStore(),
+  identity: authApiIdentity(sessionUrl),
   healthChecks: pool ? { database: databaseHealthCheck(pool) } : {},
   logger: true,
 });

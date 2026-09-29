@@ -5,6 +5,7 @@
 //   shell       :3000  apps/shell/dist    static files, SPA fallback
 //   storefront  :3004  next start         prerendered pages
 //   cart-api    :4005  node               the Cart API (TypeScript run directly, no build)
+//   auth-api    :4001  node               the Auth API: users and sessions
 //   gateway     :8080  one public origin; /mfe-registry.json → CDN
 //
 // Prerequisites: pnpm build && pnpm release all
@@ -39,8 +40,14 @@ const processes = [
   {
     name: 'cart-api',
     command: process.execPath,
-    args: ['--experimental-strip-types', '--disable-warning=ExperimentalWarning', 'src/server.ts'],
+    args: ['--env-file-if-exists=.env', '--experimental-strip-types', '--disable-warning=ExperimentalWarning', 'src/server.ts'],
     cwd: path.join(repoRoot, 'apps/cart-api'),
+  },
+  {
+    name: 'auth-api',
+    command: process.execPath,
+    args: ['--env-file-if-exists=.env', '--experimental-strip-types', '--disable-warning=ExperimentalWarning', 'src/server.ts'],
+    cwd: path.join(repoRoot, 'apps/auth-api'),
   },
   {
     name: 'gateway',

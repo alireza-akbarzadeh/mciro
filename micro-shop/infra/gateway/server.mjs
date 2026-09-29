@@ -8,6 +8,7 @@
 //   /  /products/*  /search  /catalog.json  /sitemap.xml  /robots.txt  /_next/*
 //                                                         → storefront (Next.js)
 //   /api/cart/*                                           → cart-api (Fastify, the Cart team's backend)
+//   /api/auth/*                                           → auth-api (Fastify, users and sessions)
 //   everything else: /orders/*, /shipping/*, /cart/*, /checkout, shell assets
 //                                                         → shell (Module Federation host)
 //
@@ -24,6 +25,7 @@ const zones = {
   storefront: { host: '127.0.0.1', port: Number(process.env.STOREFRONT_PORT ?? 3004) },
   shell: { host: '127.0.0.1', port: Number(process.env.SHELL_PORT ?? 3000) },
   'cart-api': { host: '127.0.0.1', port: Number(process.env.CART_API_PORT ?? 4005) },
+  'auth-api': { host: '127.0.0.1', port: Number(process.env.AUTH_API_PORT ?? 4001) },
   // Production simulation only (infra/prod/start.mjs sets CDN_PORT).
   cdn: { host: '127.0.0.1', port: Number(process.env.CDN_PORT ?? 8081) },
 };
@@ -34,6 +36,7 @@ function zoneFor(pathname) {
   // pipeline, so it's served by the CDN. In dev the shell's dev server serves it.
   if (pathname === '/mfe-registry.json' && process.env.CDN_PORT) return 'cdn';
   if (pathname === '/api/cart' || pathname.startsWith('/api/cart/')) return 'cart-api';
+  if (pathname.startsWith('/api/auth/')) return 'auth-api';
   if (pathname === '/') return 'storefront';
   if (pathname.startsWith('/products/') || pathname === '/products') return 'storefront';
   // Catalog search. A public page, so it lives in the storefront zone.
@@ -103,5 +106,6 @@ server.listen(PORT, () => {
   console.log(`[gateway] http://localhost:${PORT}`);
   console.log(`[gateway]   / /products/* /search /_next/*  → storefront :${zones.storefront.port}`);
   console.log(`[gateway]   /api/cart/*                      → cart-api   :${zones['cart-api'].port}`);
+  console.log(`[gateway]   /api/auth/*                      → auth-api   :${zones['auth-api'].port}`);
   console.log(`[gateway]   everything else                  → shell      :${zones.shell.port}`);
 });

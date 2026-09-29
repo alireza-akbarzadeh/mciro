@@ -8,18 +8,12 @@ import {
   type ServiceOptions,
   UpstreamUnavailableError,
 } from '@micro-shop/service-kit';
-import type {
-  AddItemBody,
-  ApiErrorCode,
-  CartView,
-  CheckoutBody,
-  CheckoutResult,
-  SetQuantityBody,
-} from './api-types.ts';
+import type { AddItemBody, ApiErrorCode, CartView, CheckoutResult, SetQuantityBody } from './api-types.ts';
 import { MAX_QUANTITY } from './api-types.ts';
 import type { Catalog, CatalogSource } from './catalog.ts';
 import type { CartStore } from './cart-store.ts';
 import { cartCookie, readCartId } from './cookies.ts';
+import type { Identity } from './identity.ts';
 
 // The Cart API. Everything is under /api/cart, which the gateway routes here.
 //
@@ -28,6 +22,7 @@ import { cartCookie, readCartId } from './cookies.ts';
 //   PUT    /api/cart/items/:productSlug  set a quantity (0 removes)
 //   DELETE /api/cart/items/:productSlug  remove a product
 //   POST   /api/cart/checkout            price the cart, empty it, return the checkout
+//                                        (signed-in customers only, asked of the Auth API)
 //
 // Only cart code lives here. Logging, the error format, /health, form parsing,
 // cookies and calls to other services come from @micro-shop/service-kit.
@@ -41,11 +36,13 @@ export type AppOptions = {
   catalog: CatalogSource;
   /** Where carts live: Postgres in server.ts, in memory in unit tests. */
   carts: CartStore;
+  /** Who a request comes from: the Auth API in server.ts, a fixed customer in tests. */
+  identity: Identity;
   logger?: boolean;
   healthChecks?: ServiceOptions['healthChecks'];
 };
 
-export function buildApp({ catalog, carts, logger = false, healthChecks }: AppOptions) {
+export function buildApp({ catalog, carts, identity, logger = false, healthChecks }: AppOptions) {
   const app = createService({ name: 'cart-api', logger, healthChecks });
 
   /** The browser's cart, creating one (and its cookie) on the first write. */
@@ -162,29 +159,18 @@ export function buildApp({ catalog, carts, logger = false, healthChecks }: AppOp
     },
   );
 
-  app.post<{ Body: CheckoutBody }>(
-    '/api/cart/checkout',
-    {
-      schema: {
-        body: {
-          type: 'object',
-          required: ['customer'],
-          properties: {
-            customer: {
-              type: 'object',
-              required: ['id', 'name'],
-              // Anything else (an email, a price...) is dropped, not trusted.
-              additionalProperties: false,
-              properties: {
-                id: { type: 'string', minLength: 1, maxLength: 100 },
-                name: { type: 'string', minLength: 1, maxLength: 200 },
-              },
-            },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
+  app.post('/api/cart/checkout', async (request, reply) => {
+      // Who is buying: whoever the Auth API says this session belongs to.
+      // Nothing in the request body is trusted for it (there is no body).
+      let customer;
+      try {
+        customer = await identity(request.headers.cookie);
+      } catch (error) {
+        if (!(error instanceof UpstreamUnavailableError)) throw error;
+        return fail(reply, 503, 'auth_unavailable', 'Sign-in can’t be checked right now, try again.');
+      }
+      if (!customer) return fail(reply, 401, 'not_signed_in', 'Sign in to check out.');
+
       const cartId = readCartId(request.headers.cookie);
       if (!cartId) return fail(reply, 409, 'empty_cart', 'Your cart is empty.');
 
@@ -196,11 +182,6 @@ export function buildApp({ catalog, carts, logger = false, healthChecks }: AppOp
         if (!(error instanceof UpstreamUnavailableError)) throw error;
         return fail(reply, 503, 'catalog_unavailable', 'Prices are unavailable, try again.');
       }
-
-      // NOTE: the customer is taken from the request because this demo has no
-      // auth server; the shell passes the signed-in user. With a real identity
-      // provider, the API reads it from a verified session instead.
-      const { id, name } = request.body.customer;
 
       type Outcome =
         | { ok: true; checkout: CheckoutResult }
@@ -222,7 +203,7 @@ export function buildApp({ catalog, carts, logger = false, healthChecks }: AppOp
           // The price comes from the catalog, here, now. Never from the request.
           items.push({ productSlug, name: product.name, quantity, unitPrice: product.price });
         }
-        const checkout = { checkoutId: randomUUID(), customer: { id, name }, items };
+        const checkout = { checkoutId: randomUUID(), customer, items };
         return { commit: true, result: { ok: true, checkout } };
       });
 
@@ -230,8 +211,7 @@ export function buildApp({ catalog, carts, logger = false, healthChecks }: AppOp
       const { checkout } = outcome;
       request.log.info({ checkoutId: checkout.checkoutId, lines: checkout.items.length }, 'checkout completed');
       return reply.code(201).send(checkout);
-    },
-  );
+  });
 
   return app;
 }

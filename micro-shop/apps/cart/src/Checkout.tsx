@@ -30,7 +30,8 @@ import './cart.css';
 
 // PUBLIC API of the Cart remote (exposed as `cart/Checkout`). The shell mounts it
 // at /checkout behind its sign-in policy, and passes the signed-in customer in
-// (CheckoutProps). Cart never talks to Auth itself.
+// (CheckoutProps) so the page can say who is ordering. The Cart API checks the
+// session itself when the order is placed: the browser's word isn't trusted.
 
 const cartUrl: AppPath = '/cart';
 
@@ -48,14 +49,14 @@ export default function Checkout({ customer }: CheckoutProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <CheckoutSummary customer={customer} />
+          <CheckoutSummary />
         </CardContent>
       </Card>
     </MfeFrame>
   );
 }
 
-function CheckoutSummary({ customer }: CheckoutProps) {
+function CheckoutSummary() {
   const state = useCartState();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
@@ -86,7 +87,7 @@ function CheckoutSummary({ customer }: CheckoutProps) {
     setPlacing(true);
     setError(null);
     try {
-      const checkoutId = await completeCheckout(customer);
+      const checkoutId = await completeCheckout();
       // Orders owns the order. It resolves this checkout to the order it created.
       const orderUrl: AppPath = `/orders/checkout/${checkoutId}`;
       navigate(orderUrl);

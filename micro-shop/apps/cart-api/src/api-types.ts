@@ -26,9 +26,12 @@ export type CartView = {
 
 export type AddItemBody = { productSlug: string; quantity?: number };
 export type SetQuantityBody = { quantity: number };
-export type CheckoutBody = { customer: Customer };
 
-/** Everything Cart needs to announce `checkout.completed`, priced by the server. */
+/**
+ * POST /api/cart/checkout takes no body: the customer is whoever the Auth API
+ * says the session cookie belongs to, and the prices come from the catalog.
+ * Everything Cart needs to announce `checkout.completed`, priced by the server:
+ */
 export type CheckoutResult = {
   checkoutId: string;
   customer: Customer;
@@ -39,7 +42,9 @@ export type ApiErrorCode =
   | 'unknown_product'
   | 'catalog_unavailable'
   | 'empty_cart'
-  | 'unavailable_products';
+  | 'unavailable_products'
+  | 'not_signed_in'
+  | 'auth_unavailable';
 
 export type ApiError = { error: ApiErrorCode; message: string };
 

@@ -39,16 +39,13 @@ describe('checkout', () => {
   it('announces checkout.completed with what the SERVER priced', async () => {
     const fetch = answer(201, serverResult);
 
-    const checkoutId = await completeCheckout({ ...ada, email: 'ada@example.com' } as typeof ada);
+    const checkoutId = await completeCheckout();
 
     expect(checkoutId).toBe(serverResult.checkoutId);
+    // Nothing about who is buying is sent: the server knows from the session cookie.
     expect(fetch).toHaveBeenCalledWith(
       '/api/cart/checkout',
-      expect.objectContaining({
-        method: 'POST',
-        // Only the contract's customer fields leave Cart.
-        body: JSON.stringify({ customer: { id: 'u-ada', name: 'Ada Lovelace' } }),
-      }),
+      expect.objectContaining({ method: 'POST', body: undefined }),
     );
     expect(published).toHaveLength(1);
     expect(published[0]?.source).toBe('cart');
@@ -58,8 +55,8 @@ describe('checkout', () => {
   it('announces nothing when the server refuses', async () => {
     answer(409, { error: 'empty_cart', message: 'Your cart is empty.' });
 
-    await expect(completeCheckout(ada)).rejects.toThrow(CartApiError);
-    await expect(completeCheckout(ada)).rejects.toThrow('Your cart is empty.');
+    await expect(completeCheckout()).rejects.toThrow(CartApiError);
+    await expect(completeCheckout()).rejects.toThrow('Your cart is empty.');
     expect(published).toEqual([]);
   });
 });

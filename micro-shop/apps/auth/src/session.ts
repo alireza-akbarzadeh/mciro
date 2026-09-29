@@ -10,6 +10,7 @@
 import type { AuthSessionModule } from '@micro-shop/contracts';
 import * as store from './session-store';
 
+export const ready: AuthSessionModule['ready'] = store.ready;
 export const getSession: AuthSessionModule['getSession'] = store.getSession;
 export const subscribe: AuthSessionModule['subscribe'] = store.subscribe;
 export const logout: AuthSessionModule['logout'] = store.logout;

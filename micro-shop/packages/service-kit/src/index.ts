@@ -17,5 +17,6 @@ export {
   type DatabasePoolOptions,
 } from './database.ts';
 export { sendError, type ErrorBody } from './errors.ts';
+export { runMigrations, type MigrationOptions } from './migrations.ts';
 export { portFromEnv, startService } from './start-service.ts';
 export { fetchJson, UpstreamUnavailableError, type FetchJsonOptions } from './upstream.ts';

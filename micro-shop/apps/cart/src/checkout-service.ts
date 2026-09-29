@@ -1,11 +1,11 @@
 // Checkout. Private to Cart.
 //
-// The Cart API prices the cart and empties it. Checkout still does NOT create
-// the order: orders belong to Orders. Cart announces the fact
-// `checkout.completed` with what the server priced, and Orders reacts. Moving
-// that hand-off to the server too (cart-api → orders-api) is the next stage.
+// The Cart API checks who is signed in (with the Auth API), prices the cart and
+// empties it. Checkout still does NOT create the order: orders belong to
+// Orders. Cart announces the fact `checkout.completed` with what the server
+// returned, and Orders reacts. Moving that hand-off to the server too
+// (cart-api → orders-api) is a later stage.
 
-import type { Customer } from '@micro-shop/contracts';
 import { createPublisher } from '@micro-shop/event-bus';
 import { createLogger } from '@micro-shop/observability';
 import { checkout } from './cart-store';
@@ -19,9 +19,9 @@ const log = createLogger('cart');
  * its order at /orders/checkout/:checkoutId. Throws CartApiError on failure,
  * in which case nothing is announced.
  */
-export async function completeCheckout(customer: Customer): Promise<string> {
-  const { checkoutId, customer: buyer, items } = await checkout(customer);
-  publish('checkout.completed', { version: 1, checkoutId, customer: buyer, items });
+export async function completeCheckout(): Promise<string> {
+  const { checkoutId, customer, items } = await checkout();
+  publish('checkout.completed', { version: 1, checkoutId, customer, items });
   log.info('checkout completed', { checkoutId, lines: items.length });
   return checkoutId;
 }

@@ -8,6 +8,7 @@
 declare module 'auth/session' {
   import type { AuthSessionModule } from '@micro-shop/contracts';
 
+  export const ready: AuthSessionModule['ready'];
   export const getSession: AuthSessionModule['getSession'];
   export const subscribe: AuthSessionModule['subscribe'];
   export const logout: AuthSessionModule['logout'];

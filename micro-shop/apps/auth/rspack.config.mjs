@@ -47,6 +47,9 @@ export default defineConfig({
     port: PORT,
     headers: { 'Access-Control-Allow-Origin': '*' },
     historyApiFallback: true,
+    // Standalone mode only. In the composed app the page's origin is the gateway,
+    // which routes /api/auth to the Auth API. Here, the dev server does it.
+    proxy: [{ context: ['/api/auth'], target: 'http://localhost:4001' }],
   },
 
   plugins: [

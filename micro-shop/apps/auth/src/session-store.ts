@@ -1,38 +1,64 @@
-// PRIVATE to Auth. Holds the session (including the token) and the mock login.
-// Not exposed: other applications see only the read-only facade in ./session.ts.
+// PRIVATE to Auth: the page's copy of "who is signed in", backed by the Auth API
+// (apps/auth-api, behind the gateway at /api/auth).
 //
-// This is a MOCK. There is no backend; credentials are checked in the browser.
-// What matters here is the boundary, not the security.
+// The server owns the session: it checks the password against a scrypt hash in
+// Postgres and keeps the session token in an HttpOnly cookie. This code never
+// sees the token or the password hash; it asks the API and remembers the answer.
+// Other applications see only the read-only facade in ./session.ts.
 
-import type { Session, User } from '@micro-shop/contracts';
+import type { LoginBody, SessionResponse } from '@micro-shop/auth-api/api-types';
+import type { Session } from '@micro-shop/contracts';
 import { createPublisher } from '@micro-shop/event-bus';
-import { createLogger } from '@micro-shop/observability';
+import { createLogger, errorData } from '@micro-shop/observability';
 
 const publish = createPublisher('auth');
 const log = createLogger('auth');
 
-/** What only Auth sees: the public Session plus the credential. */
-type StoredSession = Session & {
-  token: string;
-};
+const API = '/api/auth';
 
-const STORAGE_KEY = 'micro-shop.auth.session';
-const SESSION_TTL_MS = 30 * 60 * 1000;
-const DEMO_PASSWORD = 'demo';
-
-const DEMO_USERS: readonly User[] = [
-  { id: 'u-ada', name: 'Ada Lovelace', email: 'ada@example.com' },
-  { id: 'u-grace', name: 'Grace Hopper', email: 'grace@example.com' },
-];
-
-export const demoCredentials = { email: 'ada@example.com', password: DEMO_PASSWORD } as const;
+/** The seeded demo users (apps/auth-api/src/db/seed-data.ts), for the sign-in hint. */
+export const demoCredentials = { email: 'ada@example.com', password: 'demo' } as const;
 
 const listeners = new Set<() => void>();
+// useSyncExternalStore requires getSnapshot to return the SAME object until
+// something changes, so the session is replaced, never mutated.
+let snapshot: Session | null = null;
 
-let stored: StoredSession | null = readStorage();
-// A cached projection. useSyncExternalStore requires getSnapshot to return the
-// SAME object until something changes, so we never build it on read.
-let snapshot: Session | null = toPublic(stored);
+function setSession(next: Session | null): void {
+  snapshot = next;
+  for (const listener of listeners) listener();
+}
+
+async function request(method: 'GET' | 'POST', path: string, body?: unknown): Promise<Response> {
+  return fetch(`${API}${path}`, {
+    method,
+    headers:
+      body === undefined
+        ? { accept: 'application/json' }
+        : { accept: 'application/json', 'content-type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+/** Asks the API who is signed in. A failure counts as "signed out" (fail closed). */
+async function refresh(): Promise<void> {
+  try {
+    const response = await request('GET', '/session');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const { session } = (await response.json()) as SessionResponse;
+    setSession(session);
+  } catch (error) {
+    log.error('session check failed; treating the visitor as signed out', errorData(error));
+    setSession(null);
+  }
+}
+
+// Started as soon as Auth's code loads; ready() is what the shell waits for.
+const firstCheck = refresh();
+
+export function ready(): Promise<void> {
+  return firstCheck;
+}
 
 export function getSession(): Session | null {
   return snapshot;
@@ -50,94 +76,33 @@ export class InvalidCredentialsError extends Error {
 }
 
 export async function login(email: string, password: string): Promise<Session> {
-  await delay(400); // pretend this is a network call
+  const body: LoginBody = { email, password };
+  const response = await request('POST', '/login', body);
+  if (response.status === 401) throw new InvalidCredentialsError('Invalid email or password');
+  if (!response.ok) throw new Error(`Sign-in failed (HTTP ${response.status})`);
 
-  const user = DEMO_USERS.find((candidate) => candidate.email === email.trim().toLowerCase());
-  if (!user || password !== DEMO_PASSWORD) {
-    throw new InvalidCredentialsError('Invalid email or password');
-  }
-
-  const session: StoredSession = {
-    token: `mock.${crypto.randomUUID()}`,
-    user,
-    expiresAt: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
-  };
-  setStored(session);
-  log.info('user logged in', { userId: user.id });
+  const { session } = (await response.json()) as SessionResponse;
+  if (!session) throw new Error('Sign-in failed: no session returned');
+  setSession(session);
+  log.info('user logged in', { userId: session.user.id });
   // Identity facts other apps may react to (e.g. clear per-user caches on logout).
-  publish('auth.user.logged-in', { version: 1, userId: user.id });
-  return { user: session.user, expiresAt: session.expiresAt };
+  publish('auth.user.logged-in', { version: 1, userId: session.user.id });
+  return session;
 }
 
 export function logout(): void {
-  if (!stored) return;
-  const userId = stored.user.id;
-  setStored(null);
+  const userId = snapshot?.user.id;
+  if (!userId) return;
+  // Signed out on this page at once; the server ends the session in the background.
+  setSession(null);
   log.info('user logged out', { userId });
   publish('auth.user.logged-out', { version: 1, userId });
+  request('POST', '/logout', {}).catch((error: unknown) =>
+    log.error('logout request failed', errorData(error)),
+  );
 }
 
-function setStored(next: StoredSession | null): void {
-  stored = next;
-  snapshot = toPublic(next);
-  writeStorage(next);
-  writeDisplayNameCookie(next);
-  for (const listener of listeners) listener();
-}
-
-// The storefront (Next.js) is a different ZONE: it shares no JavaScript with the
-// shell, only the domain. A cookie is how identity crosses that boundary. This
-// one holds a DISPLAY NAME for "Signed in as Ada", never the token. In
-// production an auth backend sets an HttpOnly session cookie instead, which
-// JavaScript can't read at all.
-const DISPLAY_NAME_COOKIE = 'micro-shop-user';
-
-function writeDisplayNameCookie(session: StoredSession | null): void {
-  document.cookie = session
-    ? `${DISPLAY_NAME_COOKIE}=${encodeURIComponent(session.user.name)}; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL_MS / 1000}`
-    : `${DISPLAY_NAME_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`;
-}
-
-function toPublic(session: StoredSession | null): Session | null {
-  return session ? { user: session.user, expiresAt: session.expiresAt } : null;
-}
-
-// NOTE: when the shell hosts Auth, this code runs on the SHELL's origin
-// (localhost:3000), so this sessionStorage belongs to the shell's origin, not
-// localhost:3001. Remote code has no origin of its own.
-function readStorage(): StoredSession | null {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isStoredSession(parsed) || Date.parse(parsed.expiresAt) <= Date.now()) {
-      sessionStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function writeStorage(session: StoredSession | null): void {
-  try {
-    if (session) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    else sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // Storage unavailable (private mode, quota): the session lives in memory only.
-  }
-}
-
-function isStoredSession(value: unknown): value is StoredSession {
-  if (typeof value !== 'object' || value === null) return false;
-  const { token, expiresAt, user } = value as Record<string, unknown>;
-  if (typeof token !== 'string' || typeof expiresAt !== 'string') return false;
-  if (typeof user !== 'object' || user === null) return false;
-  const { id, name, email } = user as Record<string, unknown>;
-  return typeof id === 'string' && typeof name === 'string' && typeof email === 'string';
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// Signed in or out in another tab: catch up when this tab is shown again.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') void refresh();
+});

@@ -118,6 +118,9 @@ importers:
 
   apps/auth:
     dependencies:
+      '@micro-shop/auth-api':
+        specifier: workspace:*
+        version: link:../auth-api
       '@micro-shop/event-bus':
         specifier: workspace:*
         version: link:../../packages/event-bus
@@ -167,6 +170,34 @@ importers:
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
+  apps/auth-api:
+    dependencies:
+      '@micro-shop/service-kit':
+        specifier: workspace:*
+        version: link:../../packages/service-kit
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@types/pg@8.23.1)(pg@8.23.0)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
+    devDependencies:
+      '@micro-shop/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -436,12 +467,21 @@ importers:
 
   apps/storefront:
     dependencies:
+      '@micro-shop/service-kit':
+        specifier: workspace:*
+        version: link:../../packages/service-kit
       '@micro-shop/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@types/pg@8.23.1)(pg@8.23.0)
       next:
         specifier: ^16.3.6
         version: 16.3.6(@playwright/test@1.63.0)(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -458,12 +498,18 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.20.4
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
       '@types/react':
         specifier: ^19.3.0
         version: 19.3.0
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
       postcss:
         specifier: ^8.5.28
         version: 8.5.28
@@ -502,6 +548,9 @@ importers:
 
   packages/service-kit:
     dependencies:
+      drizzle-orm:
+        specifier: ^0.45.3
+        version: 0.45.3(@types/pg@8.23.1)(pg@8.23.0)
       fastify:
         specifier: ^5.12.5
         version: 5.12.5
