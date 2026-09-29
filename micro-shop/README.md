@@ -4,7 +4,7 @@
 
 **A small but complete micro-frontend architecture you can run, break, and learn from.**
 
-Six independently built frontends and a backend, one product. Runtime composition with Module Federation 2.0,
+Six independently built frontends and two backend services, one product. Runtime composition with Module Federation 2.0,
 an SEO zone with Next.js, typed contracts and events, failure isolation, versioned deploys
 with instant rollback, observability, and tests, all in one pnpm workspace.
 
@@ -85,7 +85,9 @@ flowchart TB
 
     gateway -- "/ · /products/* · /search · /sitemap.xml" --> storefront["STOREFRONT :3004<br/>Next.js · prerendered HTML · SEO"]
     gateway -- "/orders/* · /shipping/* · /cart/* · /checkout" --> shell
-    gateway -- "/api/cart/*" --> cartApi["CART API :4005<br/>Fastify · the Cart team's backend"]
+    gateway -- "/api/cart/*" --> cartApi["CART API :4005<br/>Fastify · carts"]
+    gateway -- "/api/auth/*" --> authApi["AUTH API :4001<br/>Fastify · users, sessions"]
+    db[("Neon Postgres<br/>schemas: auth · cart · catalog")]
 
     subgraph shellBox["SHELL · Module Federation host · :3000"]
         shell["Layout · top-level routes · session policy<br/>error boundaries · remote registry · event log"]
@@ -106,6 +108,10 @@ flowchart TB
     shell -- "runtime" --> shipping
     shell -- "runtime" --> cart
     cartApi -. "GET /catalog.json (prices)" .-> storefront
+    cartApi -. "who is this? (session)" .-> authApi
+    authApi --- db
+    cartApi --- db
+    storefront --- db
 ```
 
 - **Two zones behind one gateway.** Public pages come from Next.js as static HTML that search
@@ -127,12 +133,15 @@ pnpm install
 pnpm dev            # every app + storefront + gateway, as separate processes
 ```
 
-Open **http://localhost:8080** and sign in with **`ada@example.com` / `demo`**.
+Open **http://localhost:8080** and sign in with **`ada@example.com` / `demo`** (also `grace@`,
+`margaret@example.com`).
 
-**Database (optional):** the Cart API keeps carts in Neon Postgres. Copy
-`apps/cart-api/.env.example` to `apps/cart-api/.env`, paste a connection string for your own
-Neon branch (not `production`), then run `pnpm db:migrate`. Without it, carts are kept in
-memory. See [Working with the database](docs/developer-overview.md#working-with-the-database).
+**Database (optional):** the catalog, users, sessions and carts live in Neon Postgres, one
+schema per team. Copy the `.env.example` in `apps/auth-api`, `apps/cart-api` and
+`apps/storefront` to `.env`, paste a connection string for your own Neon branch (not
+`production`), then run `pnpm db:migrate && pnpm db:seed`. Without it everything still runs:
+the catalog from its seed data, users, sessions and carts in memory. See
+[Working with the database](docs/developer-overview.md#working-with-the-database).
 
 Each team can also work on its app alone, without the shell:
 
@@ -158,7 +167,8 @@ Every part of the screen has a coloured label showing which app rendered it:
    in the HTML, with JSON-LD, Open Graph tags and a canonical URL. Search for "desk": the results
    page is server-rendered too, with its query in a shareable URL.
 2. **Crossing zones:** click **Orders**. A full page load takes you to the shell, and the shell
-   asks Auth whether you're signed in. You aren't, so it renders **Auth's** login form.
+   asks Auth whether you're signed in. You aren't, so it renders **Auth's** login form, which
+   signs you in against the Auth API (passwords hashed in Postgres, session in an HttpOnly cookie).
 3. **Composition:** sign in. The header shows Auth's `UserMenu`, and the main area shows Orders.
    These are three apps from three servers.
 4. **Events:** click **Create test order**. Watch the shell's event log (bottom right):
@@ -186,13 +196,14 @@ Every part of the screen has a coloured label showing which app rendered it:
 | App | Kind | Port | Exposes / serves | Owns URLs | Source |
 | --- | --- | --- | --- | --- | --- |
 | **gateway** | Reverse proxy | 8080 | One public origin for both zones | routes everything | [infra/gateway](infra/gateway/) |
-| **storefront** | Next.js zone | 3004 | Prerendered product pages, catalog search, sitemap, robots | `/`, `/products/*`, `/search` | [apps/storefront](apps/storefront/) |
+| **storefront** | Next.js zone | 3004 | The catalog from Postgres: product and category pages (ISR), search, sitemap, robots | `/`, `/products/*`, `/categories/*`, `/search` | [apps/storefront](apps/storefront/) |
 | **shell** | MF host | 3000 | Layout, routing, session gate, isolation, event log | top-level routes | [apps/shell](apps/shell/) |
 | **auth** | MF remote | 3001 | `./session`, `./LoginForm`, `./UserMenu` | (none) | [apps/auth](apps/auth/) |
 | **orders** | MF remote | 3002 | `./OrdersApp` | `/orders/*` | [apps/orders](apps/orders/) |
 | **shipping** | MF remote | 3003 | `./ShippingApp` | `/shipping/*` | [apps/shipping](apps/shipping/) |
 | **cart** | MF remote | 3005 | `./CartApp`, `./Checkout`, `./CartBadge` | `/cart/*`, `/checkout` | [apps/cart](apps/cart/) |
 | **cart-api** | Fastify API | 4005 | carts in Neon Postgres (Drizzle), priced from the catalog | `/api/cart/*` | [apps/cart-api](apps/cart-api/) |
+| **auth-api** | Fastify API | 4001 | users (scrypt hashes) and sessions (HttpOnly cookie) in Postgres | `/api/auth/*` | [apps/auth-api](apps/auth-api/) |
 
 **Who owns what:**
 
@@ -349,6 +360,7 @@ micro-shop/
 │   ├── shipping/       MF remote: shipments            :3003
 │   ├── cart/           MF remote: cart and checkout    :3005
 │   ├── cart-api/       Fastify: the Cart team's API    :4005
+│   ├── auth-api/       Fastify: users and sessions     :4001
 │   └── storefront/     Next.js zone: public catalog    :3004
 ├── packages/
 │   ├── contracts/      types shared between apps (session API, URLs, events)
@@ -377,7 +389,8 @@ exposed component. See [Part 1 of the guide](docs/GUIDE.md#repository-layout).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Run every app, the storefront and the gateway in development mode |
-| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `cart-api`, `storefront`, `gateway` |
+| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `cart-api`, `auth-api`, `storefront`, `gateway` |
+| `pnpm db:migrate` / `pnpm db:seed` | Apply every app's database migrations / write the demo data (users, catalog) |
 | `pnpm build` / `pnpm build:<app>` | Build every app, or one, into its own artifact |
 | `pnpm typecheck` | Typecheck every app and package, including contract type-tests |
 | `pnpm test` | Unit tests (Vitest) |
@@ -476,6 +489,10 @@ Each has a checklist in the
     "Add to cart" as a plain form POST, the first backend-for-frontend behind the gateway
 12. ✅ `service-kit` for every backend service, and Neon Postgres through Drizzle: a schema per
     service, generated migrations, atomic cart updates, a Neon branch for development
+13. ✅ Auth API: real sign-in (scrypt), server-side sessions in an HttpOnly cookie, and the
+    Cart API checks the session at checkout instead of trusting the browser
+14. ✅ Catalog in Postgres with seed data: 20 products, category pages, "Add to cart" on every
+    card; shadcn dropdown-menu, avatar, breadcrumb and sonner toasts
 
 Next: move the Cart → Orders hand-off to the server (an `orders-api`), and a real identity
 provider so the APIs can verify who the customer is. More ideas are in the

@@ -10,7 +10,7 @@ test('the catalog read API is served by the storefront with public fields only',
   expect(response.headers()['x-served-by-zone']).toBe('storefront');
 
   const { products } = (await response.json()) as { products: Record<string, unknown>[] };
-  expect(products).toHaveLength(6);
+  expect(products.length).toBeGreaterThanOrEqual(20); // the seed catalog
   expect(Object.keys(products[0] ?? {}).sort()).toEqual(['name', 'price', 'slug']);
 });
 
@@ -31,9 +31,11 @@ test('the cart API sits behind the gateway, keyed by an HttpOnly cookie, priced 
 test('a guest adds products from the storefront and edits the cart', async ({ page }) => {
   await page.goto('/products/standing-desk');
   // A plain form POST to the Cart API, answered with 303 → /cart (Post/Redirect/Get).
-  await page.getByRole('button', { name: 'Add to cart' }).click();
+  // `exact`: related products below have their own "Add <name> to cart" buttons.
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
 
   await expect(page).toHaveURL(/\/cart$/);
+  await expect(page.getByText('Added Standing desk to your cart')).toBeVisible();
   await expect(page.getByRole('row', { name: /Standing desk/ })).toBeVisible();
   await expect(page.getByTestId('cart-total')).toHaveText('$540.00');
   await expect(page.getByRole('link', { name: 'Cart, 1 item' })).toBeVisible();
@@ -49,13 +51,28 @@ test('a guest adds products from the storefront and edits the cart', async ({ pa
   await page.getByRole('button', { name: 'Remove Standing desk' }).click();
   await expect(page.getByText('Your cart is empty.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Cart, 0 items' })).toBeVisible();
+
+  // Removing is instant, and the toast can take it back.
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByTestId('cart-total')).toHaveText('$1,080.00');
+});
+
+test('category pages list their products, and any card adds to the cart', async ({ page }) => {
+  await page.goto('/categories/lighting');
+  await expect(page.getByRole('heading', { name: 'Lighting', level: 1 })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Monitor light bar' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Standing desk' })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Add Monitor light bar to cart' }).click();
+  await expect(page).toHaveURL(/\/cart$/);
+  await expect(page.getByRole('row', { name: /Monitor light bar/ })).toBeVisible();
 });
 
 test('checkout asks for sign-in, then Orders creates the order and Shipping ships it', async ({
   page,
 }) => {
   await page.goto('/products/monitor-arm');
-  await page.getByRole('button', { name: 'Add to cart' }).click();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(page.getByRole('row', { name: /Monitor arm/ })).toBeVisible();
 
   // Checkout is behind the shell's sign-in policy; the cart itself was not.

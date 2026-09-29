@@ -67,6 +67,7 @@ flowchart LR
 | [shipping](../apps/shipping/) | MF remote | 3003 | Shipments and tracking, everything under `/shipping/*` | `./ShippingApp` |
 | [cart](../apps/cart/) | MF remote | 3005 | The cart (`/cart/*`, guests too) and checkout (`/checkout`, signed in) | `./CartApp`, `./Checkout`, `./CartBadge` |
 | [cart-api](../apps/cart-api/) | Fastify API | 4005 | Carts on the server, priced from the catalog | `/api/cart/*` via the gateway |
+| [auth-api](../apps/auth-api/) | Fastify API | 4001 | Users (scrypt-hashed passwords) and sessions (HttpOnly cookie) | `/api/auth/*` via the gateway |
 | [storefront](../apps/storefront/) | Next.js zone | 3004 | Public catalog: `/`, `/products/*`, `/search`, sitemap, robots | Server-rendered HTML |
 | [gateway](../infra/gateway/) | Reverse proxy | 8080 | The single public origin | Routes to storefront or shell |
 
@@ -96,17 +97,44 @@ the prefix.
 
 Owns identity. Its public surface is deliberately small:
 
-- `auth/session`: a framework-agnostic read API: `getSession()`, `subscribe()`, `logout()`.
-  Typed by `AuthSessionModule` from contracts.
+- `auth/session`: a framework-agnostic read API: `ready()`, `getSession()`, `subscribe()`,
+  `logout()`. Typed by `AuthSessionModule` from contracts. The shell waits for `ready()` (Auth's
+  first answer from its API) before deciding "signed out", so a signed-in user never sees the
+  sign-in form flash.
 - `auth/LoginForm`: the **only** way to log in. No props; the host re-renders when the session
   appears.
-- `auth/UserMenu`: the name and "Log out" button in the shell header.
+- `auth/UserMenu`: an avatar with initials and a dropdown (name, email, My orders, Sign out) in
+  the shell header, built from the shadcn `avatar` and `dropdown-menu` components.
 
-The token and `login()` stay private in
-[session-store.ts](../apps/auth/src/session-store.ts). Login is a **mock**: credentials are
-checked in the browser (`ada@example.com` or `grace@example.com`, password `demo`). On
-login/logout it publishes `auth.user.logged-in` / `auth.user.logged-out`, and it writes a
-display-name-only cookie (`micro-shop-user`) so the storefront can show "Signed in as Ada".
+Sign-in is real: [session-store.ts](../apps/auth/src/session-store.ts) calls the **Auth API**
+(below) and remembers its answer; it never sees a password hash or the session token. Demo
+accounts: `ada@example.com`, `grace@example.com`, `margaret@example.com`, password `demo`. On
+login/logout it publishes `auth.user.logged-in` / `auth.user.logged-out`.
+
+### Auth API (`apps/auth-api`)
+
+The Auth team's backend on :4001, behind the gateway at `/api/auth/*`, built on
+[`@micro-shop/service-kit`](#micro-shopservice-kit).
+
+| Endpoint | Does |
+| --- | --- |
+| `GET /api/auth/session` | `{ session }` or `{ session: null }`. **Cross-team** (`SessionEndpoint` in contracts): other services forward the browser's Cookie header here to learn who a request comes from. |
+| `POST /api/auth/login` | `{ email, password }` → sets the session cookie. 401 for a wrong password or an unknown email, alike. |
+| `POST /api/auth/logout` | Deletes the session on the server and clears the cookies. |
+
+- **Passwords** are stored as salted **scrypt** hashes (Node's built-in crypto), checked in
+  constant time. An unknown email is checked against a dummy hash, so response times don't
+  reveal which emails exist.
+- **Sessions**: a random 256-bit token in the `micro-shop-session` cookie (`HttpOnly`,
+  `SameSite=Lax`, `Path=/`, 8 hours). The database stores only its SHA-256, so a leaked
+  `sessions` table can't be used to sign in. Logout deletes the row, so a copied cookie stops
+  working at once.
+- **Login CSRF**: login and logout accept JSON only, so another site's plain form can't sign a
+  visitor in or out.
+- A second, non-HttpOnly cookie (`micro-shop-user`) holds only the display name, for the
+  storefront's "Signed in as Ada".
+- Tables in its own `auth` schema: `users`, `sessions`. `pnpm db:seed` creates the demo users.
+- **Not done yet, on purpose:** sign-up, password reset, rate limiting of login attempts.
 
 ### Orders (`apps/orders`)
 
@@ -179,23 +207,29 @@ rules and the cart store. Node runs its TypeScript directly, so there is no buil
   API's limits enforced by the database too. Every change is atomic: adding to a line is one
   upsert, and checkout locks the cart, so two tabs or a double click can't lose an update or
   check out twice. Without `DATABASE_URL` the API falls back to an in-memory store (and says so).
-- **Known limit, on purpose:** the customer at checkout is taken from the request because
-  there's no identity provider yet. That's the next stage, along with moving the Cart → Orders
-  hand-off to the server.
+- **Who checks out:** the Cart API asks the Auth API (`GET /api/auth/session`, forwarding the
+  browser's cookies). Checkout takes no body: nothing the browser says about the customer or
+  prices is trusted. Signed out → 401 `not_signed_in`; Auth down → 503 `auth_unavailable`.
+- **Not done yet:** moving the Cart → Orders hand-off to the server (an `orders-api`).
 
 #### Working with the database
 
-| Command (in `apps/cart-api`, or `pnpm db:migrate` from the root for every service) | Does |
-| --- | --- |
-| `pnpm db:generate` | After editing `src/db/schema.ts`: writes a new SQL migration to `drizzle/`. Review it and commit it. |
-| `pnpm db:migrate` | Applies pending migrations to `DATABASE_URL`. History: `cart.__drizzle_migrations`. |
-| `pnpm db:studio` | Drizzle Studio, a browser UI for the tables. |
+Three apps own a schema each in the shared Neon database: **auth-api** (`auth`), **cart-api**
+(`cart`) and the **storefront** (`catalog`). Each has the same scripts:
 
-Setup: copy [.env.example](../apps/cart-api/.env.example) to `apps/cart-api/.env` (git-ignored)
-with a connection string from the Neon console (project **mciro-shop**). **Develop against the
-`dev` branch, never `production`**: a Neon branch is a full copy of the database, created in a
-second, so every developer or feature can have their own. Run `pnpm db:migrate` once, then
-`pnpm dev`. Tests for the Postgres store run when `DATABASE_URL` is set
+| Command (in the app, or from the root for all of them) | Does |
+| --- | --- |
+| `pnpm db:generate` | After editing the app's Drizzle schema: writes a new SQL migration to its `drizzle/`. Review it and commit it. |
+| `pnpm db:migrate` | Applies pending migrations to `DATABASE_URL`. History: `<schema>.__drizzle_migrations`. |
+| `pnpm db:seed` | Demo data: users (auth-api), 6 categories and 20 products (storefront). Safe to re-run. |
+| `pnpm db:studio` | Drizzle Studio, a browser UI for the app's tables. |
+
+Setup: copy each app's `.env.example` to `.env` (git-ignored) with a connection string from the
+Neon console (project **mciro-shop**). **Develop against the `dev` branch, never
+`production`**: a Neon branch is a full copy of the database, created in a second, so every
+developer or feature can have their own. Then, from the root: `pnpm db:migrate && pnpm db:seed`,
+and `pnpm dev`. Without a `DATABASE_URL`, every app still runs: carts and sessions in memory,
+the catalog from its seed data. Tests for the Postgres stores run when `DATABASE_URL` is set
 ([cart-store.contract.test.ts](../apps/cart-api/src/cart-store.contract.test.ts)); they clean
 up after themselves.
 
@@ -204,8 +238,18 @@ up after themselves.
 A Next.js app for pages that must work **without JavaScript** (search engines, link previews).
 It is not a federation host or remote.
 
-- `/` and `/products/[slug]` are prerendered at build time, with metadata, Open Graph,
-  canonical URLs and JSON-LD. `sitemap.xml` and `robots.txt` are generated.
+- **The catalog is in Postgres**, in the storefront's own `catalog` schema
+  ([db/schema.ts](../apps/storefront/db/schema.ts): `categories`, `products` with prices in
+  integer cents), read by Server Components through Drizzle
+  ([lib/catalog.ts](../apps/storefront/lib/catalog.ts)). Without a database it serves its seed
+  data ([lib/catalog-data.ts](../apps/storefront/lib/catalog-data.ts), 20 products), which is
+  also what `pnpm db:seed` writes.
+- `/`, `/categories/<slug>` and `/products/<slug>` are prerendered (ISR), with metadata, Open
+  Graph, canonical URLs and JSON-LD, and regenerated in the background at most every 5 minutes,
+  so a price change in the database shows up without a rebuild. Products and categories added
+  later render on first request. `sitemap.xml` lists every category and product.
+- Every product card has its own **Add to cart** button; product pages have a shadcn
+  breadcrumb and "More in <category>".
 - `/search?q=<words>` is **catalog search**. It renders on each request, because it reads
   `searchParams`. The search box in the header uses `next/form`: a GET form that still works
   without JavaScript. Results pages are `noindex, follow` and left out of the sitemap. The search
@@ -213,8 +257,9 @@ It is not a federation host or remote.
   must appear in the name, category, summary or description.
 - `/catalog.json` is the catalog's public **read API** (slug, name, price), typed by
   `CatalogResponse` in contracts and generated at build time. The Cart API uses it for prices.
-- Product pages have an **Add to cart** button: a plain HTML form that POSTs to the Cart API
-  (`/api/cart/items`), so it needs no JavaScript and lands on `/cart`.
+- **Add to cart** is a plain HTML form that POSTs to the Cart API (`/api/cart/items`), so it
+  needs no JavaScript; the API answers 303 → `/cart?added=<slug>`, and the cart page confirms
+  with a toast.
 - The only client-side code is [account-status.tsx](../apps/storefront/components/account-status.tsx),
   which reads Auth's display-name cookie.
 - Links into `/orders` and `/shipping` are plain `<a href>`: they cross into the other zone, so
@@ -514,6 +559,7 @@ so the whole backend upgrades Fastify in one place.
 | `readCookie()`, `serializeCookie()` | Cookies with safe defaults: `HttpOnly`, `SameSite=Lax`, `Secure` when `COOKIE_SECURE=true` |
 | `fetchJson(url, { timeoutMs })`, `UpstreamUnavailableError` | Calls to other services with a timeout; every failure becomes one error type to degrade on |
 | `isFormPost(request)` | Tells a plain HTML form apart from a `fetch` (answer with a redirect vs JSON) |
+| `runMigrations({ schema, folder })` | `pnpm db:migrate` for any service: applies its Drizzle migrations, keeping the history in its own schema |
 | `createDatabasePool(url)`, `databaseHealthCheck(pool)` | A Postgres pool tuned for Neon (small, patient with a waking compute, survives dropped idle connections), and a `/health` check for it. Each service still owns its tables through its own Drizzle schema and migrations |
 | Fastify types | `FastifyInstance`, `FastifyRequest`, `FastifyReply`, re-exported |
 
