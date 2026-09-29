@@ -70,6 +70,34 @@ export function findProduct(slug: string): Product | undefined {
   return products.find((product) => product.slug === slug);
 }
 
+/** Longer queries are cut here: the query comes straight from the URL. */
+export const MAX_QUERY_LENGTH = 100;
+
+/** Trims and caps a raw `?q=` value. Multiple values (`?q=a&q=b`) keep the first. */
+export function normalizeQuery(raw: string | string[] | undefined): string {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return (value ?? '').trim().slice(0, MAX_QUERY_LENGTH);
+}
+
+/**
+ * Catalog search, owned by the storefront like the rest of the catalog.
+ *
+ * Every word must appear somewhere in the product's name, category, summary or
+ * description (case-insensitive). In production this becomes a call to a search
+ * service; the page that renders the results doesn't need to change.
+ */
+export function searchProducts(query: string): readonly Product[] {
+  const terms = normalizeQuery(query).toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return [];
+
+  return products.filter((product) => {
+    const text = [product.name, product.category, product.summary, product.description]
+      .join(' ')
+      .toLowerCase();
+    return terms.every((term) => text.includes(term));
+  });
+}
+
 export const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 /** Public origin behind the gateway. Used for canonical URLs, Open Graph and the sitemap. */

@@ -83,7 +83,7 @@ the bugs we hit along the way.
 flowchart TB
     browser["Browser · http://localhost:8080"] --> gateway["GATEWAY :8080<br/>routes by URL path"]
 
-    gateway -- "/ · /products/* · /sitemap.xml" --> storefront["STOREFRONT :3004<br/>Next.js · prerendered HTML · SEO"]
+    gateway -- "/ · /products/* · /search · /sitemap.xml" --> storefront["STOREFRONT :3004<br/>Next.js · prerendered HTML · SEO"]
     gateway -- "/orders/* · /shipping/*" --> shell
 
     subgraph shellBox["SHELL · Module Federation host · :3000"]
@@ -144,7 +144,8 @@ Every part of the screen has a coloured label showing which app rendered it:
 **SHIPPING** (amber).
 
 1. **Public zone:** open http://localhost:8080 and view the page source. Every product is already
-   in the HTML, with JSON-LD, Open Graph tags and a canonical URL.
+   in the HTML, with JSON-LD, Open Graph tags and a canonical URL. Search for "desk": the results
+   page is server-rendered too, with its query in a shareable URL.
 2. **Crossing zones:** click **Orders**. A full page load takes you to the shell, and the shell
    asks Auth whether you're signed in. You aren't, so it renders **Auth's** login form.
 3. **Composition:** sign in. The header shows Auth's `UserMenu`, and the main area shows Orders.
@@ -168,7 +169,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 | App | Kind | Port | Exposes / serves | Owns URLs | Source |
 | --- | --- | --- | --- | --- | --- |
 | **gateway** | Reverse proxy | 8080 | One public origin for both zones | routes everything | [infra/gateway](infra/gateway/) |
-| **storefront** | Next.js zone | 3004 | Prerendered product pages, sitemap, robots | `/`, `/products/*` | [apps/storefront](apps/storefront/) |
+| **storefront** | Next.js zone | 3004 | Prerendered product pages, catalog search, sitemap, robots | `/`, `/products/*`, `/search` | [apps/storefront](apps/storefront/) |
 | **shell** | MF host | 3000 | Layout, routing, session gate, isolation, event log | top-level routes | [apps/shell](apps/shell/) |
 | **auth** | MF remote | 3001 | `./session`, `./LoginForm`, `./UserMenu` | (none) | [apps/auth](apps/auth/) |
 | **orders** | MF remote | 3002 | `./OrdersApp` | `/orders/*` | [apps/orders](apps/orders/) |
@@ -178,7 +179,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 
 | App | Owns | Must not own |
 | --- | --- | --- |
-| Storefront | Public catalog, SEO (metadata, sitemap, robots) | Anything behind sign-in |
+| Storefront | Public catalog and catalog search, SEO (metadata, sitemap, robots) | Anything behind sign-in |
 | Shell | Layout, navigation, top-level routes, *policy* ("Orders needs a session"), loading and isolating remotes | Any business logic |
 | Auth | Identity: login UI, session, current user, the token | Whether a page needs login |
 | Orders | Orders: list, details, status, creating orders | Shipments, users |

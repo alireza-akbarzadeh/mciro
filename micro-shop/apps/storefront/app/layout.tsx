@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { MfeLabel } from '@micro-shop/ui/components/mfe-frame';
 import { AccountStatus } from '../components/account-status';
+import { SearchForm } from '../components/search-form';
 import { SITE_URL } from '../lib/catalog';
 import './globals.css';
 
@@ -39,7 +40,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               Shipping
             </a>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex flex-wrap items-center gap-4">
+            <SearchForm id="site-search" label="Search the store" className="w-72" />
             <AccountStatus />
           </div>
         </header>

@@ -2,7 +2,7 @@ import { Suspense, useState, version as reactVersion, type ReactNode } from 'rea
 import { Link, NavLink, Outlet, Route, Routes } from 'react-router';
 import type { AppPath } from '@micro-shop/contracts';
 import { Alert, AlertDescription } from '@micro-shop/ui/components/alert';
-import { buttonVariants } from '@micro-shop/ui/components/button';
+import { Button, buttonVariants } from '@micro-shop/ui/components/button';
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@micro-shop/ui/components/card';
+import { Input } from '@micro-shop/ui/components/input';
 import { MfeLabel } from '@micro-shop/ui/components/mfe-frame';
 import { Skeleton } from '@micro-shop/ui/components/skeleton';
 import { EventLog } from './EventLog';
@@ -77,6 +78,7 @@ function Layout() {
           <NavItem to="/shipping">Shipping</NavItem>
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <CatalogSearch />
           <span className="text-sm text-muted-foreground">React {reactVersion}</span>
           {/* The shell decides WHERE the user menu goes; Auth decides WHAT it shows. */}
           <Remote name="auth" load={loadUserMenu} variant="inline" />
@@ -89,6 +91,35 @@ function Layout() {
 
       <EventLog />
     </div>
+  );
+}
+
+/**
+ * Catalog search belongs to the storefront zone (/search). The shell only
+ * offers the box: a native GET form, so submitting is a full page load through
+ * the gateway, like the "Store" link. No search logic lives in the shell.
+ * (On :3000 without the gateway, /search has no owner and shows Not found.)
+ */
+function CatalogSearch() {
+  const action: AppPath = '/search';
+  return (
+    <form action={action} method="get" role="search" aria-label="Search the store" className="flex gap-2">
+      <label htmlFor="shell-catalog-search" className="sr-only">
+        Search the store
+      </label>
+      <Input
+        id="shell-catalog-search"
+        type="search"
+        name="q"
+        placeholder="Search products…"
+        maxLength={100}
+        autoComplete="off"
+        className="w-48"
+      />
+      <Button type="submit" variant="outline">
+        Search
+      </Button>
+    </form>
   );
 }
 

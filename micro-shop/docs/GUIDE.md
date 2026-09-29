@@ -1133,7 +1133,7 @@ Next.js ≤ 15. Building the foundation on it would mean building on something b
 ```mermaid
 flowchart TB
     user["Browser · http://localhost:8080"] --> gw["GATEWAY :8080<br/>infra/gateway/server.mjs<br/>routes by URL path"]
-    gw -- "/ · /products/* · /sitemap.xml · /robots.txt · /_next/*" --> sf["STOREFRONT :3004<br/>Next.js · static HTML · SEO"]
+    gw -- "/ · /products/* · /search · /sitemap.xml · /robots.txt · /_next/*" --> sf["STOREFRONT :3004<br/>Next.js · static HTML · SEO"]
     gw -- "everything else: /orders/* · /shipping/* · shell assets" --> sh["SHELL :3000<br/>Rspack + Module Federation"]
     sh -- runtime --> a["auth :3001"]
     sh -- runtime --> o["orders :3002"]
@@ -1144,7 +1144,7 @@ flowchart TB
 
 | Zone | Built with | Rendering | Owns URLs | Why |
 | --- | --- | --- | --- | --- |
-| **storefront** | Next.js 16 (App Router) | Static HTML at build time | `/`, `/products/*` | Public, must be crawlable and fast |
+| **storefront** | Next.js 16 (App Router) | Static HTML at build time; `/search` per request | `/`, `/products/*`, `/search` | Public, must be crawlable and fast |
 | **shell + remotes** | Rspack + Module Federation | In the browser | `/orders/*`, `/shipping/*` | Signed in, interactive, many teams |
 
 - **The gateway** ([`infra/gateway/server.mjs`](../infra/gateway/server.mjs)) is about 80 lines of

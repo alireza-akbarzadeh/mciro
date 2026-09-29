@@ -5,7 +5,7 @@
 // Cloudflare, nginx, Vercel Microfrontends...). It's written by hand here, with
 // no dependencies, so every routing decision is visible.
 //
-//   /  /products/*  /sitemap.xml  /robots.txt  /_next/*   → storefront (Next.js)
+//   /  /products/*  /search  /sitemap.xml  /robots.txt  /_next/*   → storefront (Next.js)
 //   everything else: /orders/*, /shipping/*, shell assets  → shell (Module Federation host)
 //
 // Remote micro-frontends (auth, orders, shipping) are NOT behind the gateway:
@@ -30,6 +30,8 @@ function zoneFor(pathname) {
   if (pathname === '/mfe-registry.json' && process.env.CDN_PORT) return 'cdn';
   if (pathname === '/') return 'storefront';
   if (pathname.startsWith('/products/') || pathname === '/products') return 'storefront';
+  // Catalog search. A public page, so it lives in the storefront zone.
+  if (pathname === '/search') return 'storefront';
   if (pathname === '/sitemap.xml' || pathname === '/robots.txt') return 'storefront';
   // Next.js assets, dev overlay and HMR websocket.
   if (pathname.startsWith('/_next/') || pathname.startsWith('/__nextjs')) return 'storefront';
@@ -91,6 +93,6 @@ server.on('upgrade', (req, socket, head) => {
 
 server.listen(PORT, () => {
   console.log(`[gateway] http://localhost:${PORT}`);
-  console.log(`[gateway]   / /products/* /_next/*  → storefront :${zones.storefront.port}`);
-  console.log(`[gateway]   everything else          → shell      :${zones.shell.port}`);
+  console.log(`[gateway]   / /products/* /search /_next/*  → storefront :${zones.storefront.port}`);
+  console.log(`[gateway]   everything else                  → shell      :${zones.shell.port}`);
 });
