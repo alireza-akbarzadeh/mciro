@@ -85,14 +85,24 @@ back to home                 oklch(0.93 0.06 150)   still green: CSS is never un
 
 ### Why every file declares the same layer order
 
-Each stylesheet starts with `@layer theme, base, components, utilities;`. Layers with the same
-name merge across stylesheets, so the order holds no matter which file loads first.
-**Unlayered CSS beats every layer**. A remote that ships plain CSS, or Tailwind v3 (unlayered
-output), overrides the shell's utilities. Keep everything layered.
+Each stylesheet starts with `@layer theme, base, components, remote-utilities, utilities;`.
+Layers with the same name merge across stylesheets, so the order holds no matter which file
+loads first. **Unlayered CSS beats every layer**. A remote that ships plain CSS, or Tailwind v3
+(unlayered output), overrides the shell's utilities. Keep everything layered.
 
-Duplicate utilities (`.flex` in both `shell.css` and `orders.css`) are identical rules, so
-they're harmless apart from bytes. That stays true only while every app uses the **same Tailwind
-major version**. Upgrading Tailwind is effectively a coordinated change.
+**Remotes put their utilities in `remote-utilities`, below the page's `utilities`.** Duplicate
+utilities are *not* harmless when they share a layer. Tailwind sorts `hidden` before `md:flex`
+inside one stylesheet, but across two stylesheets the one loaded later wins. When Auth's CSS
+(with its own `.hidden`) loaded after the shell's, it beat the shell's `md:flex`, and the
+header's navigation disappeared. In a lower layer a remote can't override the page, whatever
+classes it uses.
+
+The shell's build also scans every remote's source (`@source "../../orders/src"` and so on in
+[shell.css](../apps/shell/src/shell.css)), so the top layer already holds every class the remotes
+use, in Tailwind's order. A remote's own layer is the fallback for classes the shell hasn't been
+built with yet (a remote deployed with new markup), and all there is in standalone mode. All of
+this relies on every app using the **same Tailwind major version**, so upgrading Tailwind is a
+coordinated change.
 
 ### A bug we hit: standalone CSS leaking into the host (dev only)
 

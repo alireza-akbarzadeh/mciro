@@ -691,13 +691,20 @@ back to home                 oklch(0.93 0.06 150)   still green: CSS is never un
 Every stylesheet starts with the same line:
 
 ```css
-@layer theme, base, components, utilities;
+@layer theme, base, components, remote-utilities, utilities;
 ```
 
 Layers with the same name **merge across stylesheets**, so the priority order holds no matter
 which app's CSS loads first. **Unlayered CSS beats every layer.** A remote that ships plain
 CSS, or Tailwind v3 (unlayered output), would override the shell's utilities. Keep everything
 layered, and keep all apps on the same Tailwind major version.
+
+Remotes put their utilities in `remote-utilities`, one layer **below** the page's. Two builds
+generating the same class is not harmless: within one stylesheet Tailwind puts `hidden` before
+`md:flex`, but across stylesheets the later one wins. A remote's `.hidden` loaded after the
+shell's CSS once hid the shell's whole navigation. The shell's build also scans the remotes'
+sources, so its top layer has their classes in the right order (see
+[shared-packages.md](shared-packages.md#why-every-file-declares-the-same-layer-order)).
 
 ### Questions
 

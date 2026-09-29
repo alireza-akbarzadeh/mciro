@@ -87,7 +87,8 @@ flowchart TB
     gateway -- "/orders/* · /shipping/* · /cart/* · /checkout" --> shell
     gateway -- "/api/cart/*" --> cartApi["CART API :4005<br/>Fastify · carts"]
     gateway -- "/api/auth/*" --> authApi["AUTH API :4001<br/>Fastify · users, sessions"]
-    db[("Neon Postgres<br/>schemas: auth · cart · catalog")]
+    gateway -- "/api/orders/*" --> ordersApi["ORDERS API :4002<br/>Fastify · orders"]
+    db[("Neon Postgres<br/>schemas: auth · cart · orders · catalog")]
 
     subgraph shellBox["SHELL · Module Federation host · :3000"]
         shell["Layout · top-level routes · session policy<br/>error boundaries · remote registry · event log"]
@@ -109,8 +110,11 @@ flowchart TB
     shell -- "runtime" --> cart
     cartApi -. "GET /catalog.json (prices)" .-> storefront
     cartApi -. "who is this? (session)" .-> authApi
+    cartApi -. "create the order (service token)" .-> ordersApi
+    ordersApi -. "who is this? (session)" .-> authApi
     authApi --- db
     cartApi --- db
+    ordersApi --- db
     storefront --- db
 ```
 
@@ -136,11 +140,12 @@ pnpm dev            # every app + storefront + gateway, as separate processes
 Open **http://localhost:8080** and sign in with **`ada@example.com` / `demo`** (also `grace@`,
 `margaret@example.com`).
 
-**Database (optional):** the catalog, users, sessions and carts live in Neon Postgres, one
-schema per team. Copy the `.env.example` in `apps/auth-api`, `apps/cart-api` and
-`apps/storefront` to `.env`, paste a connection string for your own Neon branch (not
-`production`), then run `pnpm db:migrate && pnpm db:seed`. Without it everything still runs:
-the catalog from its seed data, users, sessions and carts in memory. See
+**Database (optional):** the catalog, users, sessions, carts and orders live in Neon Postgres,
+one schema per team. Copy the `.env.example` in `apps/auth-api`, `apps/cart-api`,
+`apps/orders-api` and `apps/storefront` to `.env`, paste a connection string for your own
+Neon branch (not `production`), then run `pnpm db:migrate && pnpm db:seed`. Without it
+everything still runs: the catalog from its seed data, users, sessions, carts and orders in
+memory. See
 [Working with the database](docs/developer-overview.md#working-with-the-database).
 
 Each team can also work on its app alone, without the shell:
@@ -151,6 +156,7 @@ pnpm dev:orders      # http://localhost:3002
 pnpm dev:shipping    # http://localhost:3003
 pnpm dev:cart        # http://localhost:3005  (needs dev:cart-api and dev:storefront)
 pnpm dev:cart-api    # http://localhost:4005  the Cart API (Fastify)
+pnpm dev:orders-api  # http://localhost:4002  the Orders API (Fastify)
 pnpm dev:shell       # http://localhost:3000  (the signed-in app without the gateway)
 pnpm dev:storefront  # http://localhost:3004  (the public site without the gateway)
 ```
@@ -204,6 +210,7 @@ Every part of the screen has a coloured label showing which app rendered it:
 | **cart** | MF remote | 3005 | `./CartApp`, `./Checkout`, `./CartBadge` | `/cart/*`, `/checkout` | [apps/cart](apps/cart/) |
 | **cart-api** | Fastify API | 4005 | carts in Neon Postgres (Drizzle), priced from the catalog | `/api/cart/*` | [apps/cart-api](apps/cart-api/) |
 | **auth-api** | Fastify API | 4001 | users (scrypt hashes) and sessions (HttpOnly cookie) in Postgres | `/api/auth/*` | [apps/auth-api](apps/auth-api/) |
+| **orders-api** | Fastify API | 4002 | orders in Postgres: created by the Cart API at checkout, each customer sees their own | `/api/orders/*` | [apps/orders-api](apps/orders-api/) |
 
 **Who owns what:**
 
@@ -361,6 +368,7 @@ micro-shop/
 │   ├── cart/           MF remote: cart and checkout    :3005
 │   ├── cart-api/       Fastify: the Cart team's API    :4005
 │   ├── auth-api/       Fastify: users and sessions     :4001
+│   ├── orders-api/     Fastify: orders                 :4002
 │   └── storefront/     Next.js zone: public catalog    :3004
 ├── packages/
 │   ├── contracts/      types shared between apps (session API, URLs, events)
@@ -389,7 +397,7 @@ exposed component. See [Part 1 of the guide](docs/GUIDE.md#repository-layout).
 | Command | What it does |
 | --- | --- |
 | `pnpm dev` | Run every app, the storefront and the gateway in development mode |
-| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `cart-api`, `auth-api`, `storefront`, `gateway` |
+| `pnpm dev:<app>` | Run one app: `shell`, `auth`, `orders`, `shipping`, `cart`, `cart-api`, `auth-api`, `orders-api`, `storefront`, `gateway` |
 | `pnpm db:migrate` / `pnpm db:seed` | Apply every app's database migrations / write the demo data (users, catalog) |
 | `pnpm build` / `pnpm build:<app>` | Build every app, or one, into its own artifact |
 | `pnpm typecheck` | Typecheck every app and package, including contract type-tests |
@@ -494,6 +502,10 @@ Each has a checklist in the
 14. ✅ Catalog in Postgres with seed data: 20 products, category pages, "Add to cart" on every
     card; shadcn dropdown-menu, avatar, breadcrumb and sonner toasts
 
-Next: move the Cart → Orders hand-off to the server (an `orders-api`, which checks the session
-through the Auth API as the Cart API does), so orders live in Postgres too. More ideas are in the
+15. ✅ Orders API: checkout creates the order on the server (one per checkout, never a cart
+    emptied without one), orders in Postgres per customer, a redesigned sign-in screen, and
+    remote CSS in its own cascade layer so a remote can't restyle the shell
+
+Next: a `shipping-api`, so shipments are created on the server when an order is placed
+(today Shipping still reacts in the browser). More ideas are in the
 [roadmap](docs/GUIDE.md#roadmap).

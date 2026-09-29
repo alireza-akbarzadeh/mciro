@@ -145,11 +145,37 @@ The Auth team's backend on :4001, behind the gateway at `/api/auth/*`, built on
 
 Owns orders. Routes (relative, under `/orders/*`): the list, and `/:orderId` for details.
 
-- **Create test order** simulates checkout and publishes `order.created`.
+- The signed-in customer's orders come from the **Orders API** (`GET /api/orders`), with
+  loading, empty and error states. An order that was just created but isn't in the loaded list
+  yet makes the details page reload the list once before it says "not found".
+- When Cart announces `checkout.completed` (version 2, carrying the `orderId` the server
+  created), Orders announces `order.created` to the page once. Shipping reacts to that.
 - It keeps a small **read model** of Shipping's data: the set of order ids that have a
   shipment, filled only from `shipment.created` events. That's how the "Track shipment →"
   button knows when to appear, without Orders ever calling Shipping.
 - Links to Shipping use the URL contract: `/shipping/order/:orderId`.
+
+### Orders API (`apps/orders-api`)
+
+The Orders team's backend on :4002, built on [`@micro-shop/service-kit`](#micro-shopservice-kit).
+Orders live in Postgres, in the team's own `orders` schema (`orders`, `order_lines`, money in
+cents).
+
+| Endpoint | Caller | Does |
+| --- | --- | --- |
+| `GET /api/orders` | browser, via the gateway | The signed-in customer's orders, newest first. 401 signed out, 503 if Auth can't be asked. |
+| `GET /api/orders/:orderId` | browser, via the gateway | One of **your** orders. Anyone else's is a 404, like one that doesn't exist. |
+| `POST /internal/orders` | the Cart API, directly | Creates the order for a checkout `{ checkoutId, customer, items }`. 201, or 200 with the same order when that checkout was already sent (the unique `checkout_id` decides). |
+
+- **Who the customer is** comes from the Auth API (the session cookie, through the kit's
+  `authApiIdentity`), never from the request.
+- **`/internal/*` is service to service.** The gateway doesn't route it, and it requires
+  `Authorization: Bearer <INTERNAL_API_TOKEN>`, a secret shared by the Cart and Orders APIs.
+  In development a fixed value is used when it's unset. `pnpm start:prod` generates a random one
+  per run, and a service with `NODE_ENV=production` refuses to start without one.
+- **Order numbers** start at 1001. `pnpm db:seed` adds four demo orders for the demo users
+  (#1001 and #1002 are Ada's and match Shipping's seed shipments). Without `DATABASE_URL`,
+  orders are kept in memory, with the same demo orders.
 
 ### Shipping (`apps/shipping`)
 
@@ -198,7 +224,7 @@ rules and the cart store. Node runs its TypeScript directly, so there is no buil
 | `POST /api/cart/items` | Adds a product. Accepts JSON, or a **plain HTML form** (the storefront's button), which gets `303 → /cart`. Unknown products are a 404. |
 | `PUT /api/cart/items/:slug` | Sets a quantity (1–10; 0 removes). |
 | `DELETE /api/cart/items/:slug` | Removes a product. |
-| `POST /api/cart/checkout` | Prices the cart **on the server**, empties it, returns `{ checkoutId, customer, items }`. `409` if empty. |
+| `POST /api/cart/checkout` | Prices the cart **on the server**, has the Orders API create the order, empties the cart, and returns `{ checkoutId, orderId, customer, items }`. `409` if empty, `503 orders_unavailable` (cart kept) if Orders can't be reached. |
 
 - **Identity of the cart:** a random UUID in the `micro-shop-cart` cookie: `HttpOnly` (no page
   script can read it), `SameSite=Lax`, `Path=/api/cart` (sent to this API only).
@@ -215,18 +241,22 @@ rules and the cart store. Node runs its TypeScript directly, so there is no buil
 - **Who checks out:** the Cart API asks the Auth API (`GET /api/auth/session`, forwarding the
   browser's cookies). Checkout takes no body: nothing the browser says about the customer or
   prices is trusted. Signed out → 401 `not_signed_in`; Auth down → 503 `auth_unavailable`.
-- **Not done yet:** moving the Cart → Orders hand-off to the server (an `orders-api`).
+- **Checkout creates the order before emptying the cart**, while holding the cart's lock
+  (`FOR UPDATE`). A double click can't make two orders (the second finds the cart empty), and
+  if the Orders API is down the cart stays as it was. The price of that guarantee is a network
+  call inside the lock, capped at 5 s. The production-grade alternative is an outbox table,
+  written in the same transaction and delivered to Orders by a worker.
 
 #### Working with the database
 
-Three apps own a schema each in the shared Neon database: **auth-api** (`auth`), **cart-api**
-(`cart`) and the **storefront** (`catalog`). Each has the same scripts:
+Four apps own a schema each in the shared Neon database: **auth-api** (`auth`), **cart-api**
+(`cart`), **orders-api** (`orders`) and the **storefront** (`catalog`). Each has the same scripts:
 
 | Command (in the app, or from the root for all of them) | Does |
 | --- | --- |
 | `pnpm db:generate` | After editing the app's Drizzle schema: writes a new SQL migration to its `drizzle/`. Review it and commit it. |
 | `pnpm db:migrate` | Applies pending migrations to `DATABASE_URL`. History: `<schema>.__drizzle_migrations`. |
-| `pnpm db:seed` | Demo data: users (auth-api), 6 categories and 20 products (storefront). Safe to re-run. |
+| `pnpm db:seed` | Demo data: users (auth-api), 4 orders for them (orders-api), 6 categories and 20 products (storefront). Safe to re-run. Development branches only: production gets the catalog, not demo users or orders. |
 | `pnpm db:studio` | Drizzle Studio, a browser UI for the app's tables. |
 
 Setup: copy each app's `.env.example` to `.env` (git-ignored) with a connection string from the
@@ -562,7 +592,9 @@ so the whole backend upgrades Fastify in one place.
 | `startService(app, { port })`, `portFromEnv()` | Listen (127.0.0.1, or `HOST`), and close cleanly on Ctrl+C / SIGTERM |
 | `sendError(reply, status, code, message)`, `ErrorBody<Code>` | The error shape, with each service's own codes |
 | `readCookie()`, `serializeCookie()` | Cookies with safe defaults: `HttpOnly`, `SameSite=Lax`, `Secure` when `COOKIE_SECURE=true` |
-| `fetchJson(url, { timeoutMs })`, `UpstreamUnavailableError` | Calls to other services with a timeout; every failure becomes one error type to degrade on |
+| `fetchJson(url, { body, headers, timeoutMs })`, `UpstreamUnavailableError` | Calls to other services (GET, or POST with a JSON `body`) with a timeout; every failure becomes one error type to degrade on |
+| `authApiIdentity(sessionUrl)`, `staticIdentity(customer)`, `Identity` | "Who is this request from?": asks the Auth API with the browser's cookie. `staticIdentity` for tests |
+| `requireServiceToken(token)`, `serviceAuthHeaders(token)`, `serviceTokenFromEnv()` | Service-to-service routes under `/internal/`: a Fastify `preHandler` that checks `Authorization: Bearer <INTERNAL_API_TOKEN>` in constant time, and the header for the caller |
 | `isFormPost(request)` | Tells a plain HTML form apart from a `fetch` (answer with a redirect vs JSON) |
 | `runMigrations({ schema, folder })` | `pnpm db:migrate` for any service: applies its Drizzle migrations, keeping the history in its own schema |
 | `createDatabasePool(url)`, `databaseHealthCheck(pool)` | A Postgres pool tuned for Neon (small, patient with a waking compute, survives dropped idle connections), and a `/health` check for it. Each service still owns its tables through its own Drizzle schema and migrations |
@@ -621,6 +653,7 @@ sequenceDiagram
     participant Sh as Shipping
     participant L as Shell EventLog
 
+    Note over O: the Orders API created order 1005 at checkout;<br/>Cart announced checkout.completed { orderId: "1005" }
     O->>W: publish order.created { version: 1, orderId: "1005" }
     W-->>L: re-render panel
     W-->>Sh: (only if already loaded)
@@ -645,6 +678,7 @@ sequenceDiagram
     participant Sh as Shell
     participant A as Auth
     participant O as Orders
+    participant OA as Orders API
     participant S as Shipping
 
     SF->>API: form POST /api/cart/items { productSlug }
@@ -656,17 +690,20 @@ sequenceDiagram
     Sh->>A: session? none → Auth's LoginForm
     A-->>Sh: signed in
     Sh->>C: render cart/Checkout with props { customer: { id, name } }
-    C->>API: POST /api/cart/checkout { customer }
-    API-->>C: { checkoutId, customer, items } (priced, cart emptied)
-    C->>O: publish checkout.completed { checkoutId, customer, items }
-    C->>Sh: navigate /orders/checkout/:checkoutId (loads Orders)
-    Note over O: replay: creates the order (one per checkoutId),<br/>publishes order.created, redirects to /orders/:id
+    C->>API: POST /api/cart/checkout (no body: the session says who)
+    API->>OA: POST /internal/orders { checkoutId, customer, items } (service token)
+    OA-->>API: { orderId } (one order per checkoutId)
+    API-->>C: { checkoutId, orderId, customer, items } (priced, cart emptied)
+    C->>O: publish checkout.completed v2 { checkoutId, orderId, … }
+    C->>Sh: navigate /orders/:orderId (loads Orders)
+    O->>OA: GET /api/orders (the customer's orders)
+    Note over O: replay: publishes order.created once
     Note over S: next time Shipping loads, replay creates the shipment
 ```
 
-Four apps and an API take part, and none imports another. The hand-offs are a form POST
-(storefront → Cart API), a typed prop (shell → checkout), an event (cart → orders → shipping)
-and a read API (Cart API → catalog).
+Four apps and three APIs take part, and none imports another. The hand-offs are a form POST
+(storefront → Cart API), a typed prop (shell → checkout), a service-to-service call (Cart API
+→ Orders API), an event (cart → orders → shipping) and a read API (Cart API → catalog).
 
 ### When something breaks
 
@@ -805,24 +842,29 @@ standalone `bootstrap.tsx`. Then add it to the `AppName` union in contracts, to 
 registries (dev `apps/shell/public/mfe-registry.json` and `REMOTES` in `release.mjs`), to
 `remotes.d.ts` / `load-remote.ts`, and a route in the shell's `App.tsx`.
 
-### Add a new backend service (e.g. `orders-api`)
+### Add a new backend service (e.g. `shipping-api`)
 
-A new service is only its own code, on top of the kit:
+A new service is only its own code, on top of the kit. `apps/orders-api` is the most complete
+example to copy.
 
-1. `apps/orders-api/package.json`: copy `apps/cart-api`'s (the `dev`/`start` scripts run
+1. `apps/shipping-api/package.json`: copy `apps/orders-api`'s (the `dev`/`start` scripts run
    TypeScript directly), depend on `@micro-shop/service-kit`, **not** on `fastify`.
 2. `tsconfig.json`: `{ "extends": "../../tsconfig.service.json", "include": ["src"] }`.
-3. `src/app.ts`: `const app = createService({ name: 'orders-api' })`, then the team's routes under
-   `/api/orders/...`. Answer errors with `sendError`. Export it as `buildApp()` so tests can
-   `app.inject()` without a port.
-4. `src/server.ts`: `await startService(buildApp(...), { port: portFromEnv('ORDERS_API_PORT', 4002) })`.
-   If it stores data: a Drizzle schema in its own Postgres schema (`pgSchema('orders')`), a
-   `drizzle.config.ts` with `schemaFilter: ['orders']` and its migration history in that schema,
-   `createDatabasePool` from the kit, and the `db:*` scripts. Copy them from `apps/cart-api`.
-5. Route `/api/orders/*` to it in [infra/gateway/server.mjs](../infra/gateway/server.mjs) and add
-   it to [infra/prod/start.mjs](../infra/prod/start.mjs); add `dev:orders-api` to the root scripts.
-6. Request/response types go in the service's own `src/api-types.ts` if only its own frontend
-   uses them, in `@micro-shop/contracts` if another team calls it.
+3. `src/app.ts`: `const app = createService({ name: 'shipping-api' })`, then the team's routes under
+   `/api/shipping/...`. Answer errors with `sendError`. Export it as `buildApp()` so tests can
+   `app.inject()` without a port. Signed-in routes take an `Identity` (`authApiIdentity` in the
+   server, `staticIdentity` in tests). Routes for other services go under `/internal/` with
+   `preHandler: requireServiceToken(token)`.
+4. `src/server.ts`: `await startService(buildApp(...), { port: portFromEnv('SHIPPING_API_PORT', 4003) })`.
+   If it stores data: a Drizzle schema in its own Postgres schema (`pgSchema('shipping')`), a
+   `drizzle.config.ts` with `schemaFilter: ['shipping']` and its migration history in that schema,
+   `createDatabasePool` from the kit, and the `db:*` scripts.
+5. Route `/api/shipping/*` to it in [infra/gateway/server.mjs](../infra/gateway/server.mjs) (never
+   `/internal/*`) and add it to [infra/prod/start.mjs](../infra/prod/start.mjs); add
+   `dev:shipping-api` to the root scripts.
+6. Request/response types go in the service's own `src/api-types.ts` (types only, so its frontend
+   and other services can import them without server code), or in `@micro-shop/contracts` if
+   many teams depend on them.
 
 ---
 
