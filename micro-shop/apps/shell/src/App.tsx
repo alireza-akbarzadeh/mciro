@@ -17,21 +17,13 @@ import { EventLog } from './EventLog';
 import { loadRemoteModule } from './load-remote';
 import { Remote, RemoteBoundary } from './remote';
 import { resetSessionApi, useSession } from './use-session';
+import { Layout } from './layouts/base-layout';
 
-// Each of these loads crosses an application boundary. At build time the shell
-// knows nothing about their code; at runtime the federation runtime fetches them
-// from their own servers. <Remote> adds loading, error isolation and retry.
-// Module-level functions, so their identity is stable across renders.
 const loadOrdersApp = () => loadRemoteModule('orders/OrdersApp');
 const loadShippingApp = () => loadRemoteModule('shipping/ShippingApp');
 const loadUserMenu = () => loadRemoteModule('auth/UserMenu');
 const loadLoginForm = () => loadRemoteModule('auth/LoginForm');
 
-/**
- * TOP-LEVEL routing, owned by the shell. The shell decides which application
- * owns which URL prefix. It does NOT know the routes below the prefix: the
- * trailing `/*` hands everything under /orders to Orders, and so on.
- */
 export function App() {
   return (
     <Routes>
@@ -59,89 +51,9 @@ export function App() {
   );
 }
 
-function Layout() {
-  return (
-    <div className="min-h-screen">
-      <header className="flex items-center gap-6 border-b-2 border-blue-600 bg-card px-6 py-3">
-        <MfeLabel label="SHELL" accent="blue" />
-        {/* "/" belongs to the storefront zone behind the gateway (:8080), so these are
-            plain <a> links: a full page load, not client-side routing. On :3000
-            directly, "/" is the shell's own overview page. */}
-        <a href="/" className="text-lg font-bold">
-          Micro Shop
-        </a>
-        <nav className="flex gap-1" aria-label="Main">
-          <a href="/" className={buttonVariants({ variant: 'ghost' })}>
-            Store
-          </a>
-          <NavItem to="/orders">Orders</NavItem>
-          <NavItem to="/shipping">Shipping</NavItem>
-        </nav>
-        <div className="ml-auto flex items-center gap-4">
-          <CatalogSearch />
-          <span className="text-sm text-muted-foreground">React {reactVersion}</span>
-          {/* The shell decides WHERE the user menu goes; Auth decides WHAT it shows. */}
-          <Remote name="auth" load={loadUserMenu} variant="inline" />
-        </div>
-      </header>
 
-      <main className="mx-auto my-8 max-w-4xl px-4 pb-80">
-        <Outlet />
-      </main>
 
-      <EventLog />
-    </div>
-  );
-}
 
-/**
- * Catalog search belongs to the storefront zone (/search). The shell only
- * offers the box: a native GET form, so submitting is a full page load through
- * the gateway, like the "Store" link. No search logic lives in the shell.
- * (On :3000 without the gateway, /search has no owner and shows Not found.)
- */
-function CatalogSearch() {
-  const action: AppPath = '/search';
-  return (
-    <form action={action} method="get" role="search" aria-label="Search the store" className="flex gap-2">
-      <label htmlFor="shell-catalog-search" className="sr-only">
-        Search the store
-      </label>
-      <Input
-        id="shell-catalog-search"
-        type="search"
-        name="q"
-        placeholder="Search products…"
-        maxLength={100}
-        autoComplete="off"
-        className="w-48"
-      />
-      <Button type="submit" variant="outline">
-        Search
-      </Button>
-    </form>
-  );
-}
-
-function NavItem({ to, children }: { to: AppPath; children: string }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) => buttonVariants({ variant: isActive ? 'secondary' : 'ghost' })}
-    >
-      {children}
-    </NavLink>
-  );
-}
-
-/**
- * Composition policy, owned by the shell: "this view needs a signed-in user".
- * The shell does not know HOW sign-in works; it only asks Auth whether a session
- * exists and, if not, renders Auth's own form in its place.
- *
- * If Auth itself can't be reached, the boundary FAILS CLOSED: the protected
- * remote is not rendered, because nobody can say who the user is.
- */
 function RequireSession({ children }: { children: ReactNode }) {
   const [attempt, setAttempt] = useState(0);
   return (
@@ -166,98 +78,136 @@ function SessionGate({ children }: { children: ReactNode }) {
   if (session) return children;
 
   return (
-    <div className="grid justify-items-start gap-6">
-      <Alert>
-        <AlertDescription className="flex flex-wrap items-center gap-2">
+    <div className="mx-auto max-w-md space-y-6">
+      <Alert className="border-blue-200 bg-blue-50/50 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/20 dark:text-blue-200">
+        <AlertDescription className="flex items-center gap-3 text-xs leading-relaxed">
           <MfeLabel label="SHELL" accent="blue" />
           <span>
-            This view requires sign-in. The shell decides <em>that</em>; Auth decides{' '}
-            <em>who you are</em>.
+            This view requires sign-in. The shell manages access rights; Auth verifies identity.
           </span>
         </AlertDescription>
       </Alert>
-      <Remote name="auth" load={loadLoginForm} />
+      <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-xl shadow-slate-100 dark:border-slate-800 dark:shadow-none">
+        <Remote name="auth" load={loadLoginForm} />
+      </div>
     </div>
   );
 }
 
 const deepLinks: { path: AppPath; owner: string; note: string }[] = [
-  { path: '/orders', owner: 'Orders', note: 'order list' },
-  { path: '/orders/1002', owner: 'Orders', note: 'order details, with "Track shipment"' },
-  { path: '/shipping/SHP-2001', owner: 'Shipping', note: 'tracking timeline' },
-  { path: '/shipping/order/1002', owner: 'Shipping', note: 'resolves order → shipment' },
-  { path: '/shipping/order/1003', owner: 'Shipping', note: 'order with no shipment yet' },
+  { path: '/orders', owner: 'Orders', note: 'Order history list' },
+  { path: '/orders/1002', owner: 'Orders', note: 'Order details with tracking option' },
+  { path: '/shipping/SHP-2001', owner: 'Shipping', note: 'Detailed tracking timeline' },
+  { path: '/shipping/order/1002', owner: 'Shipping', note: 'Resolves order ID to shipment' },
+  { path: '/shipping/order/1003', owner: 'Shipping', note: 'Pending shipment resolution' },
 ];
 
 const breakLinks = ['/orders?break=orders', '/shipping?break=shipping', '/?break=auth'];
 
 function Home() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">Four applications, one page</CardTitle>
-        <CardDescription>
-          Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003), each built and served
-          separately.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4 text-sm leading-relaxed">
-        <p>
-          The shell owns the <strong>first URL segment</strong> and decides which application
-          renders it. Everything after the prefix belongs to that application. Every link below is
-          a real URL you can reload, bookmark or share:
-        </p>
-        <ul className="grid gap-2">
-          {deepLinks.map((link) => (
-            <li key={link.path} className="flex flex-wrap items-baseline gap-2">
-              <Link to={link.path} className="font-mono text-primary underline underline-offset-4">
-                {link.path}
-              </Link>
-              <span className="text-muted-foreground">
-                {link.owner}: {link.note}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p>
-          <strong>Break it on purpose.</strong> Stop any app's dev server, or add{' '}
-          <code>?break=&lt;app&gt;</code> to make a remote crash while rendering. Only that area
-          shows a fallback; everything else keeps working:
-        </p>
-        <ul className="grid gap-2">
-          {breakLinks.map((link) => (
-            <li key={link} className="font-mono">
-              <Link to={link} className="text-primary underline underline-offset-4">
-                {link}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+    <div className="grid gap-6">
+      <Card className="overflow-hidden border-slate-200/80 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800">
+        <div className="h-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-400" />
+        <CardHeader className="space-y-1.5 pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Four applications, one seamless interface
+            </CardTitle>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
+              Live Federation
+            </span>
+          </div>
+          <CardDescription className="text-sm">
+            Shell (3000) · Auth (3001) · Orders (3002) · Shipping (3003), independently built & orchestrated at runtime.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 text-sm text-slate-600 dark:text-slate-400">
+          <p className="leading-relaxed">
+            The shell owns routing for top-level URL prefixes. Sub-routes belong to each respective micro-frontend. Every path below represents a deep-linkable entry point:
+          </p>
+
+          <div className="rounded-xl border border-slate-200/60 bg-slate-50/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/40">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">Deep Links</h4>
+            <ul className="grid gap-2.5">
+              {deepLinks.map((link) => (
+                <li key={link.path} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 border-b border-slate-100 dark:border-slate-800/50 pb-2 last:border-none last:pb-0">
+                  <Link
+                    to={link.path}
+                    className="font-mono font-medium text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400"
+                  >
+                    {link.path}
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded bg-slate-200/70 px-1.5 py-0.5 font-semibold text-[10px] text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      {link.owner}
+                    </span>
+                    <span className="text-slate-500">{link.note}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-xl border border-amber-200/60 bg-amber-50/30 p-4 dark:border-amber-900/30 dark:bg-amber-950/10">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-1">
+              Fault Isolation Testing
+            </h4>
+            <p className="text-xs text-amber-700/80 dark:text-amber-300/80 mb-3">
+              Simulate service failures to verify remote error boundaries:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {breakLinks.map((link) => (
+                <Link
+                  key={link}
+                  to={link}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-amber-300/50 bg-white px-2.5 py-1 font-mono text-xs text-amber-900 shadow-sm transition-colors hover:bg-amber-100/50 dark:border-amber-800/50 dark:bg-slate-900 dark:text-amber-300"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  {link}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
 function NotFound() {
   return (
-    <Card>
+    <Card className="mx-auto max-w-md border-slate-200 text-center dark:border-slate-800">
       <CardHeader>
-        <CardTitle>Not found</CardTitle>
-        <CardDescription>No application owns this URL.</CardDescription>
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <CardTitle className="text-xl">Page Not Found</CardTitle>
+        <CardDescription>No application owns this URL segment.</CardDescription>
       </CardHeader>
+      <CardContent>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/">Back to Home</Link>
+        </Button>
+      </CardContent>
     </Card>
   );
 }
 
 function RemoteLoading({ remote }: { remote: string }) {
   return (
-    <div role="status" className="grid gap-3 rounded-xl border-2 border-dashed p-6">
-      <p className="text-sm text-muted-foreground">
-        Loading <code>{remote}</code> remote…
-      </p>
-      <Skeleton className="h-6 w-1/3" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
+    <div role="status" className="grid gap-3.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 p-6 dark:border-slate-800 dark:bg-slate-900/20">
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-2 animate-ping rounded-full bg-blue-600" />
+        <p className="text-xs font-medium text-slate-500">
+          Loading <code className="rounded bg-slate-200/60 px-1 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{remote}</code> remote…
+        </p>
+      </div>
+      <Skeleton className="h-6 w-1/3 rounded-lg" />
+      <Skeleton className="h-4 w-full rounded-lg" />
+      <Skeleton className="h-4 w-5/6 rounded-lg" />
     </div>
   );
 }
